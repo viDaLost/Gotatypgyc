@@ -1,44 +1,133 @@
-// === Инициализация данных ===
-
-let currentLocation = null;
-let facts = [];
-let notes = localStorage.getItem("notes") || "";
-let gameState = JSON.parse(localStorage.getItem("gameState")) || {
-  visited: [],
-  completed: false,
+// ========== ДАННЫЕ ИГРЫ ==========
+const characters = {
+  "lord_winter": {
+    name: "Лорд Винтер",
+    description: "Хозяин поместья. Строгий и холодный, скрывает много тайн.",
+    motive: "Опасался, что кто-то из слуг раскроет его финансовые махинации."
+  },
+  "maid_anna": {
+    name: "Горничная Анна",
+    description: "Молодая и застенчивая, но внимательная к деталям.",
+    motive: "Боялась потерять работу из-за тайных прогулок по ночам."
+  },
+  "butler_james": {
+    name: "Дворецкий Джеймс",
+    description: "Верный слуга с таинственным прошлым.",
+    motive: "Хотел защитить семью от посторонних."
+  },
+  "cook_mary": {
+    name: "Повар Мария",
+    description: "Добродушная женщина с крепкими связями в округе.",
+    motive: "Могла иметь секретные связи с местным контрабандистом."
+  },
+  "neighbor_smith": {
+    name: "Сосед Смит",
+    description: "Любопытный и несколько завистливый мужчина.",
+    motive: "Завидовал Лорду Винтеру и хотел получить его земли."
+  }
 };
 
 const locations = [
   {
-    title: "Гостиная",
-    desc: "Тёмная комната с пыльными портретами на стенах. Ковёр в центре залит чем-то тёмным.",
-    sublocs: [
-      { name: "подойти к столу", action: () => showFact("На столе следы крови.") },
-      { name: "осмотреть пол", action: () => showFact("Пол покрыт странными бороздами.") },
+    id: "hall",
+    name: "Вестибюль поместья",
+    description: "Великий зал с массивной лестницей и старинными портретами на стенах.",
+    sublocations: [
+      { id: "portrait", name: "Осмотреть портреты", description: "Портреты разных поколений семьи Винтер." },
+      { id: "stairs", name: "Подняться по лестнице", description: "Лестница ведёт на второй этаж." },
+      { id: "door", name: "Осмотреть входную дверь", description: "Дверь крепкая, но с царапинами на ручке." }
     ],
-    dialogue: "Слуга говорит, что слышал шум около полуночи."
+    events: [
+      { id: "footsteps", text: "Ты слышишь тихие шаги, но никого не видишь." }
+    ],
+    dialogues: [
+      {
+        character: "butler_james",
+        lines: [
+          "Добро пожаловать, детектив. Помогу во всём, чем смогу.",
+          "Я всегда был предан этой семье."
+        ]
+      }
+    ]
   },
   {
-    title: "Библиотека",
-    desc: "Стеллажи до потолка, запах старых книг и сигар. Свет едва пробивается сквозь плотные шторы.",
-    sublocs: [
-      { name: "открыть книгу", action: () => showFact("Записка с угрозами внутри.") },
-      { name: "осмотреть камин", action: () => showFact("Обгоревшие остатки бумаги.") },
+    id: "kitchen",
+    name: "Кухня",
+    description: "Старомодная кухня с большим очагом и запахом пряностей.",
+    sublocations: [
+      { id: "stove", name: "Осмотреть очаг", description: "Очаг недавно топили, угли еще теплые." },
+      { id: "pantry", name: "Осмотреть кладовку", description: "В кладовке много банок с вареньем и консервами." },
+      { id: "window", name: "Посмотреть в окно", description: "Через окно виден сад и сарай." }
     ],
-    dialogue: "Хозяйка дома нервничает и не хочет отвечать на вопросы."
+    events: [
+      { id: "whisper", text: "Ты слышишь шепот из кладовки." }
+    ],
+    dialogues: [
+      {
+        character: "cook_mary",
+        lines: [
+          "Я готовлю для всех, но ночью слышала странные звуки.",
+          "Кто-то частенько заглядывает в кладовку, но не я."
+        ]
+      }
+    ]
   },
   {
-    title: "Оранжерея",
-    desc: "Полутемная комната с тропическими растениями. Запах гнили и цветов смешивается.",
-    sublocs: [
-      { name: "пройти к фонтану", action: () => showFact("У фонтана застряло перчатка.") },
-      { name: "проверить дверь", action: () => showFact("Дверь была взломана изнутри.") },
+    id: "barn",
+    name: "Сарай",
+    description: "Старый сарай с соломенным полом и несколькими ящиками.",
+    sublocations: [
+      { id: "table", name: "Подойти к столу", description: "Стол завален бумагами и грязными инструментами." },
+      { id: "window", name: "Осмотреть окно", description: "Окно выбито, ветер дует внутрь." },
+      { id: "floor", name: "Осмотреть пол", description: "Пятна на полу похожи на кровь." }
     ],
-    dialogue: "Садовник говорит, что видел свет в библиотеке ночью."
+    events: [
+      { id: "rat", text: "Крыса быстро проскочила мимо тебя." }
+    ],
+    dialogues: [
+      {
+        character: "maid_anna",
+        lines: [
+          "Я часто убиралась здесь, но в ночь происшествия слышала шум.",
+          "Кто-то пытался что-то спрятать на полу."
+        ]
+      }
+    ]
   },
+  {
+    id: "garden",
+    name: "Сад",
+    description: "Аккуратный сад с розами и фруктовыми деревьями.",
+    sublocations: [
+      { id: "bench", name: "Осмотреть скамейку", description: "Скамейка старая, на ней царапины." },
+      { id: "fountain", name: "Осмотреть фонтан", description: "Фонтан не работает, вода застыла." },
+      { id: "hedge", name: "Обойти живую изгородь", description: "Изгородь густая, с редкими пробелами." }
+    ],
+    events: [
+      { id: "bird", text: "Птица взлетела с ветки, прервав тишину." }
+    ],
+    dialogues: [
+      {
+        character: "neighbor_smith",
+        lines: [
+          "Я много видел в этом поместье, но не всё расскажу.",
+          "Лорд Винтер всегда скрывает правду."
+        ]
+      }
+    ]
+  }
 ];
 
-// === Основные функции ===
+let discoveredInfo = [];
+let playerNotes = "";
+let currentLocationIndex = 0;
+let currentSublocationIndex = null;
+let usedHints = 0;
+let finalUnlocked = false;
+let currentDialogue = null;
+let currentDialogueLine = 0;
+
+// === ОСНОВНЫЕ ФУНКЦИИ ===
 
 function hideAllScreens() {
   document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
@@ -49,146 +138,214 @@ function showScreen(id) {
   document.getElementById(id).classList.remove("hidden");
 }
 
-// === Обработчики экранов ===
-
-function showWelcome() {
+document.getElementById("start-btn").addEventListener("click", () => {
   showScreen("welcome-screen");
-}
+});
 
-function showIntro() {
-  showScreen("intro-screen");
-}
+document.getElementById("begin-game-btn").addEventListener("click", () => {
+  loadProgress();
+  renderLocation(currentLocationIndex);
+});
 
-function startGame() {
-  if (!gameState.visited.length) {
-    currentLocation = locations[0];
-    gameState.visited.push(currentLocation.title);
-    localStorage.setItem("gameState", JSON.stringify(gameState));
+function renderLocation(index) {
+  const loc = locations[index];
+  currentLocationIndex = index;
+  currentSublocationIndex = null;
+  currentDialogue = loc.dialogues.length > 0 ? loc.dialogues[0] : null;
+  currentDialogueLine = 0;
+
+  document.getElementById("location-title").innerHTML = `<h2>${loc.name}</h2>`;
+  document.getElementById("location-description").textContent = loc.description;
+
+  // Очистка кнопок подлокаций
+  const sublocBtns = document.getElementById("sub-location-buttons");
+  sublocBtns.innerHTML = "";
+  loc.sublocations.forEach((subloc, i) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = subloc.name;
+    btn.onclick = () => {
+      currentSublocationIndex = i;
+      updateDialogue(`Вы выбрали: ${subloc.name}`);
+    };
+    sublocBtns.appendChild(btn);
+  });
+
+  // Диалог
+  if (currentDialogue) {
+    updateDialogue(`<b>${characters[currentDialogue.character].name}:</b> ${currentDialogue.lines[0]}`, false);
+    currentDialogueLine++;
+  } else {
+    updateDialogue("Диалогов нет.", false);
   }
-  renderGame();
+
+  // Кнопки действий
+  document.getElementById("explore-btn").onclick = exploreSublocation;
+  document.getElementById("notes-btn").onclick = showNotes;
+  document.getElementById("info-btn").onclick = showInfo;
+  document.getElementById("change-location-btn").onclick = showLocationSelect;
+
+  checkFinalUnlock();
+
   showScreen("game-screen");
 }
 
-function renderGame() {
-  document.getElementById("location-title").textContent = currentLocation.title;
-  document.getElementById("location-desc").textContent = currentLocation.desc;
-  document.getElementById("dialogue-area").innerHTML = `<p>${currentLocation.dialogue}</p>`;
+function updateDialogue(text, append = true) {
+  const area = document.getElementById("dialogue-area");
+  if (append) {
+    area.innerHTML += `<p>${text}</p>`;
+  } else {
+    area.innerHTML = `<p>${text}</p>`;
+  }
+  area.scrollTop = area.scrollHeight;
 }
 
-function showLocations() {
-  const list = document.getElementById("locations-list");
+function exploreSublocation() {
+  if (currentSublocationIndex === null) {
+    updateDialogue("Выберите подлокацию.");
+    return;
+  }
+
+  const loc = locations[currentLocationIndex];
+  const subloc = loc.sublocations[currentSublocationIndex];
+
+  const findings = [
+    "Вы нашли старую записку.",
+    "На стене царапины.",
+    "Пятна похожи на кровь.",
+    "Предмет одежды остался в углу.",
+    "Здесь ничего необычного.",
+    "Кто-то спрятал документы.",
+    "Следы борьбы на полу.",
+    "Здесь давно никто не был."
+  ];
+
+  const finding = findings[Math.floor(Math.random() * findings.length)];
+  updateDialogue(`Исследуя "${subloc.name}": ${finding}`);
+
+  if (finding.includes("кровь") || finding.includes("записка") || finding.includes("документы")) {
+    addDiscoveredInfo(finding);
+  }
+}
+
+function addDiscoveredInfo(text) {
+  if (!discoveredInfo.includes(text)) {
+    discoveredInfo.push(text);
+    saveProgress();
+  }
+}
+
+function showNotes() {
+  document.getElementById("notes-textarea").value = playerNotes;
+  showScreen("notes-screen");
+}
+
+document.getElementById("save-notes-btn").addEventListener("click", () => {
+  playerNotes = document.getElementById("notes-textarea").value;
+  saveProgress();
+  alert("Заметки сохранены.");
+});
+
+document.getElementById("close-notes-btn").addEventListener("click", () => {
+  showScreen("game-screen");
+});
+
+function showInfo() {
+  const list = document.getElementById("info-list");
   list.innerHTML = "";
-  locations.forEach(loc => {
+  if (discoveredInfo.length === 0) {
+    list.innerHTML = "<li>Информация пока не собрана.</li>";
+  } else {
+    discoveredInfo.forEach(info => {
+      const li = document.createElement("li");
+      li.textContent = info;
+      list.appendChild(li);
+    });
+  }
+  showScreen("info-screen");
+}
+
+document.getElementById("close-info-btn").addEventListener("click", () => {
+  showScreen("game-screen");
+});
+
+function showLocationSelect() {
+  const list = document.getElementById("location-list");
+  list.innerHTML = "";
+  locations.forEach((loc, i) => {
     const btn = document.createElement("button");
-    btn.textContent = loc.title;
-    btn.disabled = !gameState.visited.includes(loc.title);
+    btn.className = "btn";
+    btn.textContent = loc.name;
+    btn.disabled = !isLocationAvailable(i);
     btn.onclick = () => {
-      currentLocation = loc;
-      renderGame();
-      showScreen("game-screen");
+      renderLocation(i);
     };
     const li = document.createElement("li");
     li.appendChild(btn);
     list.appendChild(li);
   });
-  showScreen("locations-screen");
+  showScreen("location-select-screen");
 }
 
-function showNotes() {
-  updateNotesArea();
-  showScreen("notes-screen");
+function isLocationAvailable(index) {
+  return index <= currentLocationIndex;
 }
 
-function saveNotes() {
-  notes = document.getElementById("notes-textarea").value;
-  localStorage.setItem("notes", notes);
+document.getElementById("close-location-select-btn").addEventListener("click", () => {
+  showScreen("game-screen");
+});
+
+function checkFinalUnlock() {
+  if (discoveredInfo.length >= 3) {
+    finalUnlocked = true;
+    document.getElementById("final-submit-btn").disabled = false;
+  }
 }
 
-function updateNotesArea() {
-  const area = document.getElementById("notes-textarea");
-  if (area) area.value = notes;
-}
+document.getElementById("final-submit-btn").addEventListener("click", checkFinalAnswer);
 
-function showFacts() {
-  updateFactsList();
-  showScreen("facts-screen");
-}
+function checkFinalAnswer() {
+  const resultDiv = document.getElementById("final-result");
+  const chosen = prompt("Введите имя преступника:");
 
-function updateFactsList() {
-  const list = document.getElementById("facts-list");
-  list.innerHTML = "";
-  facts.forEach(f => {
-    const li = document.createElement("li");
-    li.textContent = f;
-    list.appendChild(li);
-  });
-}
-
-function showInvestigation() {
-  const area = document.getElementById("dialogue-area");
-  area.innerHTML = "<p>Что вы хотите исследовать?</p>";
-  currentLocation.sublocs.forEach(sub => {
-    const btn = document.createElement("button");
-    btn.textContent = sub.name;
-    btn.onclick = () => {
-      sub.action();
-      // Открываем следующую локацию после всех действий
-      if (currentLocation.sublocs.every(s => facts.some(f => f.includes(s.name)))) {
-        const nextIndex = locations.findIndex(l => l.title === currentLocation.title) + 1;
-        if (nextIndex < locations.length && !gameState.visited.includes(locations[nextIndex].title)) {
-          gameState.visited.push(locations[nextIndex].title);
-          localStorage.setItem("gameState", JSON.stringify(gameState));
-        }
-      }
-    };
-    area.appendChild(btn);
-  });
-}
-
-function checkFinal(e) {
-  e.preventDefault();
-  const killer = document.getElementById("killer-input").value.toLowerCase();
-  const method = document.getElementById("method-input").value.toLowerCase();
-  const motive = document.getElementById("motive-input").value.toLowerCase();
-
-  let result = "";
-
-  if (killer.includes("хозяйка") && method.includes("отравленный чай") && motive.includes("наследство")) {
-    result = "Правильно! Хозяйка отравила жертву ради наследства.";
-  } else {
-    result = "Ошибка. Подумайте ещё...";
-    if (!killer.includes("хозяйка")) result += " Неправильный убийца.";
-    if (!method.includes("отравленный чай")) result += " Неправильный метод.";
-    if (!motive.includes("наследство")) result += " Неправильный мотив.";
+  if (!chosen) {
+    alert("Введите имя преступника.");
+    return;
   }
 
-  document.getElementById("final-result").textContent = result;
+  if (chosen.toLowerCase().includes("анна")) {
+    resultDiv.innerHTML = `<p style="color:green;">Правильно! Горничная Анна была виновна.</p>`;
+  } else {
+    resultDiv.innerHTML = `<p style="color:red;">Ошибка. Это не преступник.</p>`;
+  }
+
+  document.getElementById("final-main-menu-btn").classList.remove("hidden");
+  resultDiv.classList.remove("hidden");
 }
 
-function restartGame() {
-  gameState = { visited: [], completed: false };
-  facts = [];
-  notes = "";
-  localStorage.removeItem("gameState");
-  localStorage.removeItem("notes");
-  showWelcome();
-}
-
-// === Инициализация событий при загрузке DOM ===
-
-document.addEventListener("DOMContentLoaded", function () {
-  // Привязываем обработчики к кнопкам
-  window.showWelcome = showWelcome;
-  window.showIntro = showIntro;
-  window.startGame = startGame;
-  window.showLocations = showLocations;
-  window.showNotes = showNotes;
-  window.saveNotes = saveNotes;
-  window.showFacts = showFacts;
-  window.showInvestigation = showInvestigation;
-  window.checkFinal = checkFinal;
-  window.restartGame = restartGame;
-
-  // Показываем начальный экран
-  showWelcome();
+document.getElementById("final-main-menu-btn").addEventListener("click", () => {
+  showScreen("welcome-screen");
 });
+
+// === СОХРАНЕНИЕ И ЗАГРУЗКА ===
+
+function saveProgress() {
+  const data = {
+    discoveredInfo,
+    playerNotes,
+    currentLocationIndex,
+    finalUnlocked
+  };
+  localStorage.setItem("detectiveGameSave", JSON.stringify(data));
+}
+
+function loadProgress() {
+  const saved = localStorage.getItem("detectiveGameSave");
+  if (saved) {
+    const data = JSON.parse(saved);
+    discoveredInfo = data.discoveredInfo || [];
+    playerNotes = data.playerNotes || "";
+    currentLocationIndex = data.currentLocationIndex || 0;
+    finalUnlocked = data.finalUnlocked || false;
+  }
+}
