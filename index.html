@@ -2,80 +2,19 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Детективное расследование: Поместье Грейвуд</title>
-  <link rel="stylesheet" href="styles.css" />
+  
+  <!-- Подключаем шрифт -->
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet" />
+
+  <!-- Подключаем стили -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="app">
-    <header>
-      <h1>Детективное расследование: Поместье Грейвуд</h1>
-    </header>
+  <div id="app"></div>
 
-    <main id="main-screen">
-      <button id="start-btn" class="btn">Начать расследование</button>
-    </main>
-
-    <!-- Экран приветствия -->
-    <section id="welcome-screen" class="hidden">
-      <div class="content-box">
-        <p>Добрый день, детектив. Сегодня нам предстоит расследовать дело.</p>
-        <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
-        <button id="begin-game-btn" class="btn">Начать</button>
-      </div>
-    </section>
-
-    <!-- Экран игры -->
-    <section id="game-screen" class="hidden">
-      <div id="location-title"></div>
-      <div id="location-description"></div>
-
-      <div id="sub-location-buttons" class="btn-group"></div>
-
-      <div id="dialogue-area"></div>
-
-      <div id="action-buttons" class="btn-group">
-        <button id="explore-btn" class="btn">Исследовать</button>
-        <button id="notes-btn" class="btn">Заметки</button>
-        <button id="info-btn" class="btn">Информация</button>
-        <button id="change-location-btn" class="btn">Выбор локации</button>
-      </div>
-    </section>
-
-    <!-- Экран заметок -->
-    <section id="notes-screen" class="hidden">
-      <h2>Заметки</h2>
-      <textarea id="notes-textarea" placeholder="Введите свои заметки здесь..."></textarea>
-      <button id="save-notes-btn" class="btn">Сохранить</button>
-      <button id="close-notes-btn" class="btn">Закрыть</button>
-    </section>
-
-    <!-- Экран информации -->
-    <section id="info-screen" class="hidden">
-      <h2>Информация</h2>
-      <ul id="info-list"></ul>
-      <button id="close-info-btn" class="btn">Закрыть</button>
-    </section>
-
-    <!-- Экран выбора локации -->
-    <section id="location-select-screen" class="hidden">
-      <h2>Выберите локацию</h2>
-      <ul id="location-list"></ul>
-      <button id="close-location-select-btn" class="btn">Закрыть</button>
-    </section>
-
-    <!-- Экран финала -->
-    <section id="final-screen" class="hidden">
-      <h2>Финал расследования</h2>
-      <div id="final-dialogue"></div>
-      <button id="final-submit-btn" class="btn" disabled>Подтвердить версию</button>
-      <button id="final-main-menu-btn" class="btn hidden">Главное меню</button>
-      <div id="final-result" class="hidden"></div>
-      <div id="final-stats"></div>
-    </section>
-  </div>
-
+  <!-- Подключаем JS -->
   <script src="script.js"></script>
 </body>
 </html>
