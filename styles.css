@@ -173,7 +173,7 @@ ul#info-list {
   color: #fff;
 }
 
-/* === ДИАЛОГИ И ПОДЛОКАЦИИ === */
+/* === ДИАЛОГИ И ПОДЛОКАЦИИ В МОДАЛЬНЫХ ОКНАХ === */
 #dialogue-options {
   margin-top: 1rem;
 }
@@ -188,6 +188,7 @@ ul#info-list {
   margin-top: 0.5rem;
   font-size: 0.9rem;
   background-color: #444;
+  padding: 0.4rem 0.8rem;
 }
 
 .btn-restart:hover {
