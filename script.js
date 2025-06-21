@@ -235,24 +235,44 @@ const locations = [
     id: "hall",
     name: "Вестибюль поместья",
     description: "Великий зал с массивной лестницей и старинными портретами на стенах. Здесь всегда прохладно, и кажется, будто за вами наблюдают портреты.",
+    sublocations: [
+      { id: "portrait", name: "Осмотреть портреты", description: "Портреты разных поколений семьи Винтер." },
+      { id: "stairs", name: "Подняться по лестнице", description: "Лестница ведёт на второй этаж." },
+      { id: "door", name: "Осмотреть входную дверь", description: "Дверь крепкая, но с царапинами на ручке." }
+    ],
     character: "butler_james"
   },
   {
     id: "kitchen",
     name: "Кухня",
     description: "Старомодная кухня с большим очагом и запахом пряностей. Здесь можно найти еду, но также легко спрятать что-то опасное.",
+    sublocations: [
+      { id: "stove", name: "Осмотреть очаг", description: "Очаг недавно топили, угли еще теплые." },
+      { id: "pantry", name: "Осмотреть кладовку", description: "В кладовке много банок с вареньем и консервами." },
+      { id: "window", name: "Посмотреть в окно", description: "Через окно виден сад и сарай." }
+    ],
     character: "cook_mary"
   },
   {
     id: "barn",
     name: "Сарай",
     description: "Старый сарай с соломенным полом и несколькими ящиками. Пахнет плесенью и старыми вещами. Крысы бегают по углам, и кажется, что кто-то был здесь совсем недавно.",
+    sublocations: [
+      { id: "table", name: "Подойти к столу", description: "Стол завален бумагами и грязными инструментами." },
+      { id: "window", name: "Осмотреть окно", description: "Окно выбито, ветер дует внутрь." },
+      { id: "floor", name: "Осмотреть пол", description: "Пятна на полу похожи на кровь." }
+    ],
     character: "maid_anna"
   },
   {
     id: "garden",
     name: "Сад",
     description: "Аккуратный сад с розами и фруктовыми деревьями. Фонтан давно не работает, но цветы ухожены. Отсюда хорошо видно окна дома.",
+    sublocations: [
+      { id: "bench", name: "Осмотреть скамейку", description: "Скамейка старая, на ней царапины." },
+      { id: "fountain", name: "Осмотреть фонтан", description: "Фонтан не работает, вода застыла." },
+      { id: "hedge", name: "Обойти живую изгородь", description: "Изгородь густая, с редкими пробелами." }
+    ],
     character: "neighbor_smith"
   }
 ];
@@ -267,35 +287,40 @@ let finalUnlocked = false;
 
 const app = document.getElementById("app");
 
-function renderMainMenu() {
-  app.innerHTML = `
-    <header><h1>Дело поместья Винтер</h1></header>
-    <main>
-      <div class="content-box">
-        <button class="btn" id="start-btn">Начать прохождение</button>
-      </div>
-    </main>
-  `;
-  document.getElementById('start-btn').onclick = () => {
-    renderIntro();
-  };
+function updateDialogue(text, append = true) {
+  const area = document.getElementById("dialogue-area");
+  if (append) {
+    area.innerHTML += "<p>" + text + "</p>";
+  } else {
+    area.innerHTML = "<p>" + text + "</p>";
+  }
+  area.scrollTop = area.scrollHeight;
 }
 
-function renderIntro() {
-  app.innerHTML = `
-    <header><h1>Дело поместья Винтер</h1></header>
-    <main>
-      <div class="content-box" style="max-width:400px;">
-        <p>Добрый день, детектив! Сегодня нам предстоит расследовать дело.</p>
-        <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
-        <button class="btn" id="begin-game-btn">Начать</button>
-      </div>
-    </main>
+function showDialogue(charId, nodeId) {
+  const char = characters[charId];
+  const node = char.dialogueTree[nodeId];
+  if (!node) return;
+  let optionsHTML = node.options.map(opt => 
+    `<button class="btn" data-next="${opt.next}">${opt.text}</button>`
+  ).join('');
+  app.innerHTML += `
+    <div class="content-box" style="margin-top:1rem;" id="dialogue-options">
+      <p><b>${char.name}:</b> ${node.text}</p>
+      <div class="btn-group">${optionsHTML}</div>
+    </div>
   `;
-  document.getElementById('begin-game-btn').onclick = () => {
-    loadProgress();
-    renderLocation(currentLocationIndex);
-  };
+  document.querySelectorAll("#dialogue-options .btn").forEach(btn => {
+    btn.onclick = () => {
+      const nextNode = btn.dataset.next;
+      app.querySelector("#dialogue-options").remove();
+      if (nextNode !== "end") {
+        showDialogue(charId, nextNode);
+      } else {
+        updateDialogue(`<b>${char.name}:</b> ${char.dialogueTree.end.text}`);
+      }
+    };
+  });
 }
 
 function renderLocation(index) {
@@ -303,6 +328,7 @@ function renderLocation(index) {
   currentLocationIndex = index;
   currentSublocationIndex = null;
 
+  // Подлокации
   let sublocationsHTML = "";
   if (loc.sublocations) {
     sublocationsHTML = loc.sublocations.map((subloc, i) =>
@@ -310,6 +336,7 @@ function renderLocation(index) {
     ).join('');
   }
 
+  // Персонаж
   let characterHTML = "";
   if (loc.character) {
     const char = characters[loc.character];
@@ -320,6 +347,7 @@ function renderLocation(index) {
       </div>`;
   }
 
+  // Основной интерфейс
   app.innerHTML = `
     <header><h1>${loc.name}</h1></header>
     <main>
@@ -338,17 +366,21 @@ function renderLocation(index) {
 
   // Обработчики подлокаций
   const subBtns = document.querySelectorAll('#sublocations-buttons .btn');
-  subBtns.forEach(btn => btn.onclick = () => {
-    const idx = parseInt(btn.dataset.index);
-    currentSublocationIndex = idx;
-    updateDialogue(`Вы выбрали: ${loc.sublocations[idx].description}`, false);
+  subBtns.forEach(btn => {
+    btn.onclick = () => {
+      const idx = parseInt(btn.dataset.index);
+      currentSublocationIndex = idx;
+      updateDialogue(`Вы выбрали: ${loc.sublocations[idx].description}`, false);
+    };
   });
 
+  // Обработчики кнопок
   document.getElementById('notes-btn').onclick = renderNotes;
   document.getElementById('info-btn').onclick = renderInfo;
   document.getElementById('location-select-btn').onclick = renderLocationSelect;
   document.getElementById('final-btn').onclick = renderFinal;
 
+  // Диалог
   if (loc.character) {
     document.getElementById('talk-btn').onclick = () => {
       currentDialogueCharacter = loc.character;
@@ -357,45 +389,6 @@ function renderLocation(index) {
   }
 
   checkFinalUnlock();
-}
-
-function updateDialogue(text, append = true) {
-  const area = document.getElementById("dialogue-area");
-  if (append) {
-    area.innerHTML += "<p>" + text + "</p>";
-  } else {
-    area.innerHTML = "<p>" + text + "</p>";
-  }
-  area.scrollTop = area.scrollHeight;
-}
-
-function showDialogue(charId, nodeId) {
-  const char = characters[charId];
-  const node = char.dialogueTree[nodeId];
-  if (!node) return;
-
-  let optionsHTML = node.options.map(opt => 
-    `<button class="btn" data-next="${opt.next}">${opt.text}</button>`
-  ).join('');
-
-  app.innerHTML += `
-    <div class="content-box" style="margin-top:1rem;" id="dialogue-options">
-      <p><b>${char.name}:</b> ${node.text}</p>
-      <div class="btn-group">${optionsHTML}</div>
-    </div>
-  `;
-
-  document.querySelectorAll("#dialogue-options .btn").forEach(btn => {
-    btn.onclick = () => {
-      const nextNode = btn.dataset.next;
-      app.querySelector("#dialogue-options").remove();
-      if (nextNode !== "end") {
-        showDialogue(charId, nextNode);
-      } else {
-        updateDialogue(`<b>${char.name}:</b> ${char.dialogueTree.end.text}`);
-      }
-    };
-  });
 }
 
 function renderNotes() {
@@ -415,6 +408,7 @@ function renderNotes() {
     alert("Заметки сохранены.");
   };
   document.getElementById('back-btn').onclick = () => {
+    loadProgress();
     renderLocation(currentLocationIndex);
   };
 }
@@ -532,4 +526,36 @@ function loadProgress() {
   }
 }
 
+function renderMainMenu() {
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main>
+      <div class="content-box">
+        <button class="btn" id="start-btn">Начать прохождение</button>
+      </div>
+    </main>
+  `;
+  document.getElementById('start-btn').onclick = () => {
+    renderIntro();
+  };
+}
+
+function renderIntro() {
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main>
+      <div class="content-box" style="max-width:400px;">
+        <p>Добрый день, детектив! Сегодня нам предстоит расследовать дело.</p>
+        <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
+        <button class="btn" id="begin-game-btn">Начать</button>
+      </div>
+    </main>
+  `;
+  document.getElementById('begin-game-btn').onclick = () => {
+    loadProgress();
+    renderLocation(currentLocationIndex);
+  };
+}
+
+// Запуск игры
 renderMainMenu();
