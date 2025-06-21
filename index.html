@@ -2,73 +2,18 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Поместье Грейвуд</title>
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Детективное расследование: Поместье Грейвуд</title>
+  <!-- Стили -->
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Шрифт -->
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div id="app">
-    <div id="welcome-screen" class="screen active">
-      <h1>Поместье Грейвуд</h1>
-      <p>Загадочное убийство в старинном особняке.</p>
-      <button onclick="showIntro()">Начать расследование</button>
-    </div>
+  <!-- Основной контейнер для динамического рендера экранов -->
+  <div id="app"></div>
 
-    <div id="intro-screen" class="screen hidden">
-      <h2>Вступление</h2>
-      <p>Вы — частный детектив. В поместье Грейвуд произошло загадочное убийство. Ваша задача — найти истину среди лжи и теней.</p>
-      <button onclick="startGame()">Начать</button>
-    </div>
-
-    <div id="game-screen" class="screen hidden">
-      <h2 id="location-title"></h2>
-      <p id="location-desc"></p>
-
-      <div class="btn-group">
-        <button onclick="showLocations()">Выбор локации</button>
-        <button onclick="showNotes()">Заметки</button>
-        <button onclick="showFacts()">Информация</button>
-        <button onclick="showInvestigation()">Исследовать</button>
-      </div>
-
-      <div id="dialogue-area"></div>
-    </div>
-
-    <div id="locations-screen" class="screen hidden">
-      <h2>Локации</h2>
-      <ul id="locations-list"></ul>
-      <button onclick="backToGame()">Назад</button>
-    </div>
-
-    <div id="notes-screen" class="screen hidden">
-      <h2>Заметки</h2>
-      <textarea id="notes-textarea"></textarea>
-      <button onclick="saveNotes()">Сохранить</button>
-      <button onclick="backToGame()">Назад</button>
-    </div>
-
-    <div id="facts-screen" class="screen hidden">
-      <h2>Факты</h2>
-      <ul id="facts-list"></ul>
-      <button onclick="backToGame()">Назад</button>
-    </div>
-
-    <div id="final-screen" class="screen hidden">
-      <h2>Финальная версия</h2>
-      <form onsubmit="checkFinal(event)">
-        <label>Кто убил?</label>
-        <input type="text" id="killer-input" required/>
-        <label>Как был убит?</label>
-        <input type="text" id="method-input" required/>
-        <label>Мотив:</label>
-        <input type="text" id="motive-input" required/>
-        <button type="submit">Подтвердить версию</button>
-      </form>
-      <p id="final-result"></p>
-      <button onclick="restartGame()">Переиграть</button>
-    </div>
-  </div>
+  <!-- Подключение скрипта -->
   <script src="script.js"></script>
 </body>
 </html>
