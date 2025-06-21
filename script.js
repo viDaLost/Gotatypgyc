@@ -115,28 +115,8 @@ let currentDialogueLine = 0;
 
 // ========== ОСНОВНАЯ ЛОГИКА ==========
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("start-btn").onclick = showWelcomeScreen;
-  document.getElementById("begin-game-btn").onclick = startGame;
-  document.getElementById("explore-btn").onclick = exploreSublocation;
-  document.getElementById("notes-btn").onclick = showNotesScreen;
-  document.getElementById("info-btn").onclick = showInfoScreen;
-  document.getElementById("change-location-btn").onclick = showLocationSelectScreen;
-  document.getElementById("save-notes-btn").onclick = saveNotes;
-  document.getElementById("close-notes-btn").onclick = backToGame;
-  document.getElementById("close-info-btn").onclick = backToGame;
-  document.getElementById("close-location-select-btn").onclick = backToGame;
-  document.getElementById("final-submit-btn").onclick = submitFinalAnswer;
-
-  const locationList = document.getElementById("location-list");
-  locations.forEach((loc, index) => {
-    const li = document.createElement("li");
-    li.textContent = loc.name;
-    li.onclick = () => selectLocation(index);
-    locationList.appendChild(li);
-  });
-
   loadProgress();
-  showMainScreen();
+  renderMainMenu();
 });
 
 function hideAllScreens() {
@@ -148,15 +128,28 @@ function showMainScreen() {
   document.getElementById("main-screen").classList.remove("hidden");
 }
 
-function showWelcomeScreen() {
-  hideAllScreens();
-  document.getElementById("welcome-screen").classList.remove("hidden");
+function renderMainMenu() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main class="content-box">
+      <button class="btn" id="start-btn">Начать прохождение</button>
+    </main>
+  `;
+  document.getElementById("start-btn").onclick = renderIntro;
 }
 
-function startGame() {
-  hideAllScreens();
-  document.getElementById("game-screen").classList.remove("hidden");
-  renderLocation(currentLocationIndex);
+function renderIntro() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main class="content-box">
+      <p>Добрый день, детектив! Сегодня нам предстоит расследовать дело.</p>
+      <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
+      <button class="btn" id="begin-game-btn">Начать</button>
+    </main>
+  `;
+  document.getElementById("begin-game-btn").onclick = () => renderLocation(currentLocationIndex);
 }
 
 function renderLocation(index) {
@@ -166,24 +159,57 @@ function renderLocation(index) {
   currentDialogue = null;
   currentDialogueLine = 0;
 
-  document.getElementById("location-title").textContent = loc.name;
-  document.getElementById("location-description").textContent = loc.description;
+  let subButtonsHTML = loc.sublocations.map((subloc, i) =>
+    `<button class="btn" data-index="${i}">${subloc.name}</button>`
+  ).join("");
 
-  const subButtons = document.getElementById("sub-location-buttons");
-  subButtons.innerHTML = "";
-  loc.sublocations.forEach((subloc, i) => {
-    const btn = document.createElement("button");
-    btn.className = "btn";
-    btn.textContent = subloc.name;
-    btn.onclick = () => currentSublocationIndex = i;
-    subButtons.appendChild(btn);
+  const dialogueArea = `<div id="dialogue-area" style="min-height:120px; margin-top: 1rem;"></div>`;
+  const subLocBtns = `<div class="btn-group" id="sublocations-buttons">${subButtonsHTML}</div>`;
+  const exploreBtn = `<button class="btn" id="explore-btn">Исследовать выбранное</button>`;
+  const actionBtns = `
+    <div class="btn-group" style="margin-top:1rem;">
+      <button class="btn" id="notes-btn">Заметки</button>
+      <button class="btn" id="info-btn">Информация</button>
+      <button class="btn" id="location-select-btn">Выбор локации</button>
+      <button class="btn" id="next-dialogue-btn">Следующий диалог</button>
+      <button class="btn hidden" id="final-btn">Финал</button>
+    </div>
+  `;
+
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <header><h1>${loc.name}</h1></header>
+    <main>
+      <div id="location-description">${loc.description}</div>
+      ${subLocBtns}
+      ${exploreBtn}
+      ${dialogueArea}
+      ${actionBtns}
+    </main>
+  `;
+
+  // === Обработчики событий ===
+  document.querySelectorAll("#sublocations-buttons .btn").forEach(btn => {
+    btn.onclick = () => {
+      currentSublocationIndex = parseInt(btn.dataset.index);
+      updateDialogue(`Вы выбрали: ${loc.sublocations[currentSublocationIndex].name}`, false);
+    };
   });
 
+  document.getElementById("explore-btn").onclick = exploreSublocation;
+  document.getElementById("notes-btn").onclick = renderNotes;
+  document.getElementById("info-btn").onclick = renderInfo;
+  document.getElementById("location-select-btn").onclick = renderLocationSelect;
+  document.getElementById("next-dialogue-btn").onclick = showNextDialogueLine;
+  document.getElementById("final-btn").onclick = renderFinal;
+
+  // Автоматически показать первый диалог
   if (loc.dialogues.length > 0) {
     currentDialogue = loc.dialogues[0];
+    currentDialogueLine = 0;
     showNextDialogueLine();
   } else {
-    updateDialogue("Диалогов нет.");
+    updateDialogue("Диалогов в этой локации нет.");
   }
 
   checkFinalUnlock();
@@ -191,20 +217,17 @@ function renderLocation(index) {
 
 function updateDialogue(text, append = true) {
   const area = document.getElementById("dialogue-area");
-  area.innerHTML += `<p>${text}</p>`;
+  if (append) {
+    area.innerHTML += "<p>" + text + "</p>";
+  } else {
+    area.innerHTML = "<p>" + text + "</p>";
+  }
   area.scrollTop = area.scrollHeight;
-}
-
-function showNextDialogueLine() {
-  if (!currentDialogue || currentDialogueLine >= currentDialogue.lines.length) return;
-  const char = characters[currentDialogue.character];
-  const line = currentDialogue.lines[currentDialogueLine++];
-  updateDialogue(`<b>${char.name}:</b> ${line}`);
 }
 
 function exploreSublocation() {
   if (currentSublocationIndex === null) {
-    updateDialogue("Сначала выберите подлокацию.");
+    updateDialogue("Сначала выберите, что хотите исследовать.");
     return;
   }
 
@@ -220,7 +243,7 @@ function exploreSublocation() {
   ];
 
   const finding = possibleFindings[Math.floor(Math.random() * possibleFindings.length)];
-  updateDialogue(`Исследование: ${finding}`);
+  updateDialogue(`Исследуя "${locations[currentLocationIndex].sublocations[currentSublocationIndex].name}": ${finding}`);
 
   if (finding.includes("пятна") || finding.includes("заметка") || finding.includes("фотография") || finding.includes("царапины")) {
     addDiscoveredInfo(finding);
@@ -234,71 +257,127 @@ function addDiscoveredInfo(text) {
   }
 }
 
-function showNotesScreen() {
-  hideAllScreens();
-  document.getElementById("notes-screen").classList.remove("hidden");
-  document.getElementById("notes-textarea").value = playerNotes;
+function renderNotes() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <header><h1>Заметки</h1></header>
+    <main class="content-box">
+      <textarea id="notes-textarea" placeholder="Ваши заметки...">${playerNotes}</textarea>
+      <div style="margin-top:1rem;">
+        <button class="btn" id="save-notes-btn">Сохранить</button>
+        <button class="btn" id="back-btn">Назад</button>
+      </div>
+    </main>
+  `;
+  document.getElementById("save-notes-btn").onclick = () => {
+    playerNotes = document.getElementById("notes-textarea").value;
+    saveProgress();
+    alert("Заметки сохранены.");
+  };
+  document.getElementById("back-btn").onclick = () => renderLocation(currentLocationIndex);
 }
 
-function saveNotes() {
-  playerNotes = document.getElementById("notes-textarea").value;
-  saveProgress();
-  alert("Заметки сохранены.");
-  backToGame();
+function renderInfo() {
+  const infoList = discoveredInfo.length ? discoveredInfo.map(info => `<p>• ${info}</p>`).join("") : "<p>Информация пока не собрана.</p>";
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <header><h1>Информация</h1></header>
+    <main class="content-box">
+      ${infoList}
+      <button class="btn" id="back-btn">Назад</button>
+    </main>
+  `;
+  document.getElementById("back-btn").onclick = () => renderLocation(currentLocationIndex);
 }
 
-function showInfoScreen() {
-  hideAllScreens();
-  document.getElementById("info-screen").classList.remove("hidden");
-  const list = document.getElementById("info-list");
-  list.innerHTML = "";
-  discoveredInfo.forEach(info => {
-    const li = document.createElement("li");
-    li.textContent = info;
-    list.appendChild(li);
+function renderLocationSelect() {
+  const locationList = locations.map((loc, i) => `<button class="btn" data-index="${i}">${loc.name}</button>`).join("");
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <header><h1>Выбор локации</h1></header>
+    <main class="content-box">
+      ${locationList}
+      <button class="btn" id="back-btn">Назад</button>
+    </main>
+  `;
+  document.querySelectorAll("button[data-index]").forEach(btn => {
+    btn.onclick = () => {
+      const idx = parseInt(btn.dataset.index);
+      renderLocation(idx);
+    };
   });
+  document.getElementById("back-btn").onclick = () => renderLocation(currentLocationIndex);
 }
 
-function showLocationSelectScreen() {
-  hideAllScreens();
-  document.getElementById("location-select-screen").classList.remove("hidden");
-}
+function showNextDialogueLine() {
+  if (!currentDialogue) {
+    updateDialogue("Диалогов нет.");
+    return;
+  }
 
-function selectLocation(index) {
-  backToGame();
-  renderLocation(index);
-}
+  const lines = currentDialogue.lines;
+  if (currentDialogueLine >= lines.length) {
+    updateDialogue("Диалог окончен.");
+    return;
+  }
 
-function backToGame() {
-  hideAllScreens();
-  document.getElementById("game-screen").classList.remove("hidden");
+  const char = characters[currentDialogue.character];
+  updateDialogue(`<b>${char.name}:</b> ${lines[currentDialogueLine]}`);
+  currentDialogueLine++;
 }
 
 function checkFinalUnlock() {
   if (discoveredInfo.length >= 5) {
     finalUnlocked = true;
-    document.getElementById("final-main-menu-btn").classList.remove("hidden");
-    document.getElementById("final-submit-btn").disabled = false;
+    document.getElementById("final-btn").classList.remove("hidden");
   }
 }
 
-function submitFinalAnswer() {
-  const selected = document.querySelector('input[name="final-choice"]:checked');
-  if (!selected) {
-    alert("Выберите версию!");
+function renderFinal() {
+  if (!finalUnlocked) {
+    alert("Финал откроется после сбора достаточного количества улик.");
     return;
   }
 
-  const resultDiv = document.getElementById("final-result");
+  const options = Object.entries(characters).map(([key, ch]) => 
+    `<option value="${key}">${ch.name} виновен</option>`
+  ).join("");
+
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <header><h1>Финал</h1></header>
+    <main class="content-box">
+      <p>Выберите версию преступления, которую хотите представить:</p>
+      <select id="final-version-select" style="width:100%; padding:0.5rem; margin-bottom: 1rem;">
+        <option value="">-- Выберите версию --</option>
+        ${options}
+      </select>
+      <button class="btn" id="submit-final-btn">Подтвердить</button>
+      <button class="btn" id="back-btn">Назад</button>
+      <div id="final-result" style="margin-top: 1rem;"></div>
+    </main>
+  `;
+
+  document.getElementById("submit-final-btn").onclick = () => {
+    const val = document.getElementById("final-version-select").value;
+    if (!val) {
+      alert("Пожалуйста, выберите версию.");
+      return;
+    }
+    checkFinalAnswer(val);
+  };
+
+  document.getElementById("back-btn").onclick = () => renderLocation(currentLocationIndex);
+}
+
+function checkFinalAnswer(chosen) {
   const correct = "maid_anna";
-
-  if (selected.value === correct) {
-    resultDiv.innerHTML = "<p style='color:green;'>Правильно! Горничная Анна была виновна.</p>";
+  const resultDiv = document.getElementById("final-result");
+  if (chosen === correct) {
+    resultDiv.innerHTML = `<p style="color:green;"><b>Верно!</b> Горничная Анна была виновна. Поздравляем, вы раскрыли дело!</p>`;
   } else {
-    resultDiv.innerHTML = "<p style='color:red;'>Неверно. Попробуйте снова!</p>";
+    resultDiv.innerHTML = `<p style="color:red;"><b>Неверно.</b> Это не правильный подозреваемый. Попробуйте снова или просмотрите заметки и информацию.</p>`;
   }
-
-  document.getElementById("final-result").classList.remove("hidden");
 }
 
 function saveProgress() {
