@@ -1,148 +1,188 @@
-(() => {
-  const app = document.getElementById('app');
-  let startTime;
-  let hintsUsed = 0;
+const app = document.getElementById('app');
 
-  const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
-  const load = key => JSON.parse(localStorage.getItem(key));
+let state = JSON.parse(localStorage.getItem('detective_state')) || {
+  stage: 'menu',
+  loc: null,
+  clues: [],
+  notes: '',
+  errors: 0,
+  start: null,
+  finalStep: 0
+};
 
-  const game = {
-    title: "Детектив: Лампа в сарае",
-    intro: "Добрый день, детектив – сегодня нам предстоит расследовать дело.",
-    tip: "Цель: пройти игру с наименьшим количеством подсказок от помощника.",
-    locations: [
-      {
-        name: "Дом",
-        dialog: "Ты осматриваешь дом. На полу пыль, но следов нет. Письмо на столе подтверждает ссору между владельцем и соседом."
-      },
-      {
-        name: "Сарай",
-        dialog: "В сарае — запах керосина, разбитая лампа, следы обуви. Это может быть местом преступления."
-      },
-      {
-        name: "Лавка",
-        dialog: "Продавщица говорит, что сын тракториста был взволнован утром и купил бинт. Странно?"
-      }
-    ],
-    finale: [
-      {
-        question: "Где было событие?",
-        options: ["Лес", "Сарай", "Домик"],
-        correct: 1,
-        hint: "В сарае ты нашёл сломанную лампу и следы."
-      },
-      {
-        question: "Кто причастен?",
-        options: ["Сын тракториста", "Вдова", "Лесник"],
-        correct: 0,
-        hint: "Сын тракториста отрицал своё алиби."
-      },
-      {
-        question: "Мотив?",
-        options: ["Ревность", "Преступление из-за денег", "Случайно"],
-        correct: 1,
-        hint: "Он задолжал крупную сумму за трактор."
-      }
-    ]
-  };
+const characters = {
+  "Иван Фёдоров": "замкнутый фермер, что-то скрывает",
+  "Мария Лесная": "охотница, кажется испуганной",
+  "Пётр Круглов": "сын хозяина, грубый и нервный"
+};
 
-  function showMain() {
-    app.innerHTML = `
-      <h1>${game.title}</h1>
-      <button class="button" id="btn-start">Начать</button>
-    `;
-    document.getElementById('btn-start').onclick = () => {
-      startTime = Date.now();
-      hintsUsed = 0;
-      save('progress', { stage: 'intro', hintsUsed: 0, startTime });
-      showIntro();
-    };
+const locations = {
+  "Ферма": {
+    desc: "Старая ферма с покосившимся забором. Запах навоза и чего-то горелого.",
+    found: false,
+    clue: "обгоревший ключ",
+    person: "Иван Фёдоров"
+  },
+  "Лес": {
+    desc: "Мрачный лес, тропинки путаются. Что-то блестит в траве.",
+    found: false,
+    clue: "клочок ткани",
+    person: "Мария Лесная"
+  },
+  "Сарай": {
+    desc: "Развалившийся сарай. На полу тёмное пятно.",
+    found: false,
+    clue: "разбитая лампа",
+    person: "Пётр Круглов"
   }
+};
 
-  function showIntro() {
-    app.innerHTML = `
-      <div class="dialog">
-        <p>${game.intro}</p>
-        <p><strong>${game.tip}</strong></p>
-        <button class="button" id="btn-play">Начать расследование</button>
-      </div>
-    `;
-    document.getElementById('btn-play').onclick = () => {
-      save('progress', { stage: 'locations', current: 0, hintsUsed, startTime });
-      showLocations(0);
-    };
+function saveState() {
+  localStorage.setItem('detective_state', JSON.stringify(state));
+}
+function render() {
+  app.innerHTML = '';
+
+  if (state.stage === 'menu') return renderMenu();
+  if (state.stage === 'map') return renderMap();
+  if (state.stage === 'location') return renderLocation(state.loc);
+  if (state.stage === 'journal') return renderJournal();
+  if (state.stage === 'final') return renderFinal();
+}
+
+function renderMenu() {
+  state.start = Date.now();
+  app.innerHTML = `
+    <h1>Тайна Старого Проклятия</h1>
+    <button onclick="startGame()">Начать прохождение</button>
+  `;
+}
+
+function startGame() {
+  state.stage = 'map';
+  saveState();
+  render();
+}
+function renderMap() {
+  let html = `<h2>Карта Локаций</h2><img src="assets/map.png" alt="Карта" class="map">`;
+  for (let loc in locations) {
+    html += `<button onclick="goToLocation('${loc}')">${loc}</button>`;
   }
+  html += `<button onclick="renderJournal()">Журнал</button>`;
+  html += `<button onclick="beginFinal()">Финал</button>`;
+  app.innerHTML = html;
+}
 
-  function showLocations(index) {
-    const loc = game.locations[index];
-    app.innerHTML = `
-      <div class="dialog">
-        <h3>${loc.name}</h3>
-        <p>${loc.dialog}</p>
-        <button class="button" id="btn-next">${index < game.locations.length - 1 ? 'Далее' : 'К финалу'}</button>
-      </div>
-    `;
-    document.getElementById('btn-next').onclick = () => {
-      const nextIndex = index + 1;
-      if (nextIndex < game.locations.length) {
-        save('progress', { stage: 'locations', current: nextIndex, hintsUsed, startTime });
-        showLocations(nextIndex);
-      } else {
-        save('progress', { stage: 'finale', index: 0, answers: [], hintsUsed, startTime });
-        showFinale(0, []);
-      }
-    };
-  }
+function goToLocation(loc) {
+  state.loc = loc;
+  state.stage = 'location';
+  saveState();
+  render();
+}
 
-  function showFinale(idx, answers) {
-    if (idx >= game.finale.length) {
-      showResult();
-      return;
-    }
-    const s = game.finale[idx];
-    app.innerHTML = `
-      <div class="dialog">
-        <p>${s.question}</p>
-        ${s.options.map((opt, i) => `<div class="choice"><button class="button" data-id="${i}">${opt}</button></div>`).join('')}
-      </div>
-    `;
-    document.querySelectorAll('.choice button').forEach(b => {
-      b.onclick = () => {
-        const chosen = +b.dataset.id;
-        if (chosen !== s.correct) {
-          hintsUsed++;
-          alert("Помощник: " + s.hint);
-        }
-        answers.push({ question: s.question, chosen: s.options[chosen] });
-        save('progress', { stage: 'finale', index: idx + 1, answers, hintsUsed, startTime });
-        showFinale(idx + 1, answers);
-      };
-    });
-  }
+function renderLocation(loc) {
+  const data = locations[loc];
+  let html = `<h2>${loc}</h2><div class="panel"><p>${data.desc}</p>`;
 
-  function showResult() {
-    const elapsed = Math.ceil((Date.now() - startTime) / 1000);
-    app.innerHTML = `
-      <div id="final">
-        <h2>Вы раскрыли дело!</h2>
-        <p>Время: ${elapsed} с</p>
-        <p>Подсказок использовано: ${hintsUsed}</p>
-        <button class="button" id="btn-menu">Главное меню</button>
-      </div>
-    `;
-    localStorage.removeItem('progress');
-    document.getElementById('btn-menu').onclick = showMain;
-  }
-
-  // Восстановление прогресса
-  const saved = load('progress');
-  if (saved) {
-    startTime = saved.startTime || Date.now();
-    hintsUsed = saved.hintsUsed || 0;
-    if (saved.stage === 'intro') showIntro();
-    else if (saved.stage === 'locations') showLocations(saved.current);
-    else if (saved.stage === 'finale') showFinale(saved.index, saved.answers || []);
+  if (!data.found) {
+    html += `<button onclick="findClue('${loc}')">Осмотреть</button>`;
   } else {
-    showMain();
+    html += `<p>Улика найдена: ${data.clue}</p>`;
   }
-})();
+
+  html += `<button onclick="talk('${data.person}')">Поговорить с ${data.person}</button>`;
+  html += `<button onclick="backToMap()">Назад</button></div>`;
+  app.innerHTML = html;
+}
+
+function findClue(loc) {
+  const clue = locations[loc].clue;
+  if (!state.clues.includes(clue)) {
+    state.clues.push(clue);
+  }
+  locations[loc].found = true;
+  saveState();
+  render();
+}
+
+function talk(name) {
+  alert(`${name} (${characters[name]}): "Мне нечего сказать..."`);
+  if (!state.clues.includes(`разговор с ${name}`)) {
+    state.clues.push(`разговор с ${name}`);
+  }
+  saveState();
+}
+function renderJournal() {
+  let html = `<h2>Журнал</h2><div class="panel"><p><strong>Улики:</strong></p><ul>`;
+  for (let clue of state.clues) {
+    html += `<li>${clue}</li>`;
+  }
+  html += `</ul><p><strong>Заметки:</strong></p>
+    <textarea id="notes">${state.notes}</textarea>
+    <button onclick="saveNotes()">Сохранить</button>
+    <button onclick="backToMap()">Назад</button></div>`;
+  app.innerHTML = html;
+}
+
+function saveNotes() {
+  state.notes = document.getElementById('notes').value;
+  saveState();
+  alert("Заметки сохранены.");
+}
+
+function backToMap() {
+  state.stage = 'map';
+  saveState();
+  render();
+}
+
+const finale = [
+  { q: "Где было совершено преступление?", correct: "Сарай" },
+  { q: "Кто виновен?", correct: "Пётр Круглов" },
+  { q: "Что было орудием преступления?", correct: "разбитая лампа" }
+];
+
+function beginFinal() {
+  state.stage = 'final';
+  state.finalStep = 0;
+  render();
+}
+
+function renderFinal() {
+  if (state.finalStep >= finale.length) {
+    const time = Math.floor((Date.now() - state.start) / 1000);
+    app.innerHTML = `<h2>Вы раскрыли дело!</h2><div class="panel">
+      <p>Время: ${time} сек.</p>
+      <p>Ошибок: ${state.errors}</p>
+      <button onclick="resetGame()">В главное меню</button></div>`;
+    return;
+  }
+
+  const step = finale[state.finalStep];
+  let html = `<h2>Финал</h2><div class="panel"><p>${step.q}</p>`;
+  const options = Object.keys(locations).concat(Object.keys(characters), state.clues);
+  for (let o of options) {
+    html += `<button onclick="chooseFinal('${o}')">${o}</button>`;
+  }
+  html += `</div>`;
+  app.innerHTML = html;
+}
+
+function chooseFinal(choice) {
+  const correct = finale[state.finalStep].correct;
+  if (choice === correct) {
+    state.finalStep++;
+  } else {
+    state.errors++;
+    alert("Помощник: Подумай ещё раз.");
+  }
+  saveState();
+  render();
+}
+
+function resetGame() {
+  localStorage.removeItem('detective_state');
+  location.reload();
+}
+
+render();
