@@ -278,28 +278,112 @@ const locations = [
 ];
 
 let discoveredInfo = [];
-let playerNotes = "";
+let playerNotes = []; // Храним массив строк вместо строки
 let currentLocationIndex = 0;
 let finalUnlocked = false;
 
 const app = document.getElementById("app");
 
-// ========== СОСТОЯНИЕ ДИАЛОГОВ ==========
-let dialogueStates = {};
-
-// ========== ОТОБРАЖЕНИЕ ВСПЛЫВАЮЩИХ ОКОН ==========
-function showModal(title, content, onClose = () => {}) {
-  const modalHTML = `
-    <div class="modal">
-      <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h2>${title}</h2>
-        <div id="modal-body">${content}</div>
+// ========== РЕНДЕРИНГ ИГРОВОГО ИНТЕРФЕЙСА ==========
+function renderMainMenu() {
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main>
+      <div class="content-box">
+        <button class="btn" id="start-btn">Начать прохождение</button>
       </div>
-    </div>`;
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = modalHTML;
-  const modal = tempDiv.firstElementChild;
+    </main>
+  `;
+  document.getElementById('start-btn').onclick = () => {
+    renderIntro();
+  };
+}
+
+function renderIntro() {
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main>
+      <div class="content-box" style="max-width:400px;">
+        <p>Добрый день, детектив! Сегодня нам предстоит расследовать дело.</p>
+        <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
+        <button class="btn" id="begin-game-btn">Начать</button>
+      </div>
+    </main>
+  `;
+  document.getElementById('begin-game-btn').onclick = () => {
+    loadProgress();
+    renderLocation(currentLocationIndex);
+  };
+}
+
+function renderLocation(index) {
+  const loc = locations[index];
+  currentLocationIndex = index;
+
+  let sublocationsHTML = "";
+  if (loc.sublocations) {
+    sublocationsHTML = loc.sublocations.map((subloc, i) =>
+      `<button class="btn" data-index="${i}">${subloc.name}</button>`
+    ).join('');
+  }
+
+  let characterHTML = "";
+  if (loc.character) {
+    const char = characters[loc.character];
+    characterHTML = `
+      <div style="margin-top:1rem;">
+        <p>Здесь находится: <b>${char.name}</b> — ${char.description}</p>
+        <button class="btn" id="talk-btn">Поговорить с ${char.name}</button>
+      </div>`;
+  }
+
+  app.innerHTML = `
+    <header><h1>${loc.name}</h1></header>
+    <main>
+      <div id="location-description">${loc.description}</div>
+      <div class="btn-group" id="sublocations-buttons">${sublocationsHTML}</div>
+      ${characterHTML}
+      <div class="btn-group" style="margin-top:1rem;">
+        <button class="btn" id="notes-btn">Заметки</button>
+        <button class="btn" id="info-btn">Информация</button>
+        <button class="btn" id="location-select-btn">Выбор локации</button>
+        <button class="btn hidden" id="final-btn">Финал</button>
+      </div>
+    </main>
+  `;
+
+  document.getElementById('notes-btn')?.addEventListener('click', renderNotes);
+  document.getElementById('info-btn')?.addEventListener('click', renderInfo);
+  document.getElementById('location-select-btn')?.addEventListener('click', renderLocationSelect);
+  document.getElementById('final-btn')?.addEventListener('click', renderFinal);
+
+  if (loc.character) {
+    document.getElementById('talk-btn')?.addEventListener('click', () => {
+      showDialogue(loc.character, dialogueStates[loc.character] || "start");
+    });
+  }
+
+  document.querySelectorAll('#sublocations-buttons .btn').forEach(btn => {
+    btn.onclick = () => {
+      const idx = parseInt(btn.dataset.index);
+      showSublocationDetails(loc.sublocations[idx]);
+    };
+  });
+
+  checkFinalUnlock();
+}
+
+// ========== МОДАЛЬНЫЕ ОКНА ==========
+function showModal(title, content, onClose = () => {}) {
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>${title}</h2>
+      <div id="modal-body">${content}</div>
+    </div>
+  `;
   document.body.appendChild(modal);
 
   modal.querySelector(".close-btn").onclick = () => {
@@ -308,29 +392,25 @@ function showModal(title, content, onClose = () => {}) {
   };
 }
 
-// ========== ОТОБРАЖЕНИЕ ДИАЛОГОВ ==========
+// ========== ДИАЛОГИ ==========
 function showDialogue(charId, nodeId) {
   const char = characters[charId];
   let node = char.dialogueTree[nodeId];
-
+  
   function buildDialogContent(nodeId) {
-    const node = char.dialogueTree[nodeId];
-    let optionsHTML = node.options.map(opt =>
+    const n = char.dialogueTree[nodeId];
+    let optionsHTML = n.options.map(opt =>
       `<button class="btn" data-next="${opt.next}">${opt.text}</button>`
-    ).join("<br>");
+    ).join('<br>');
     let restartBtn = nodeId !== "start" ? `<br><button class="btn btn-restart" data-restart>Начать сначала</button>` : "";
 
     return `
-      <p><b>${char.name}:</b> ${node.text}</p>
-      <div class="btn-group" style="flex-wrap: wrap;">
-        ${optionsHTML}
-        ${restartBtn}
-      </div>`;
+      <p><b>${char.name}:</b> ${n.text}</p>
+      <div class="btn-group" style="flex-wrap: wrap;">${optionsHTML}${restartBtn}</div>`;
   }
 
   function render() {
     showModal(`Диалог с ${char.name}`, buildDialogContent(nodeId), () => {
-      // Обработчики событий
       document.querySelectorAll("#modal-body .btn[data-next]").forEach(btn => {
         btn.onclick = () => {
           const nextNode = btn.dataset.next;
@@ -350,77 +430,7 @@ function showDialogue(charId, nodeId) {
     });
   }
 
-  if (dialogueStates[charId]) {
-    nodeId = dialogueStates[charId];
-  }
-
-  node = char.dialogueTree[nodeId];
   render();
-}
-
-// ========== РЕНДЕРИНГ ЛОКАЦИЙ ==========
-function renderLocation(index) {
-  const loc = locations[index];
-  currentLocationIndex = index;
-
-  // Подлокации
-  let sublocationsHTML = "";
-  if (loc.sublocations) {
-    sublocationsHTML = loc.sublocations.map((subloc, i) =>
-      `<button class="btn" data-index="${i}">${subloc.name}</button>`
-    ).join('');
-  }
-
-  // Персонаж
-  let characterHTML = "";
-  if (loc.character) {
-    const char = characters[loc.character];
-    characterHTML = `
-      <div style="margin-top:1rem;">
-        <p>Здесь находится: <b>${char.name}</b> — ${char.description}</p>
-        <button class="btn" id="talk-btn">Поговорить с ${char.name}</button>
-      </div>`;
-  }
-
-  // Основной интерфейс
-  app.innerHTML = `
-    <header><h1>${loc.name}</h1></header>
-    <main>
-      <div id="location-description">${loc.description}</div>
-      <div class="btn-group" id="sublocations-buttons">${sublocationsHTML}</div>
-      ${characterHTML}
-      <div id="dialogue-area" style="min-height:120px; margin-top:1rem;"></div>
-      <div class="btn-group" style="margin-top:1rem;">
-        <button class="btn" id="notes-btn">Заметки</button>
-        <button class="btn" id="info-btn">Информация</button>
-        <button class="btn" id="location-select-btn">Выбор локации</button>
-        <button class="btn hidden" id="final-btn">Финал</button>
-      </div>
-    </main>
-  `;
-
-  // Обработчики подлокаций
-  document.querySelectorAll('#sublocations-buttons .btn').forEach(btn => {
-    btn.onclick = () => {
-      const idx = parseInt(btn.dataset.index);
-      showSublocationDetails(loc.sublocations[idx]);
-    };
-  });
-
-  // Обработчики кнопок
-  document.getElementById('notes-btn')?.addEventListener('click', renderNotes);
-  document.getElementById('info-btn')?.addEventListener('click', renderInfo);
-  document.getElementById('location-select-btn')?.addEventListener('click', renderLocationSelect);
-  document.getElementById('final-btn')?.addEventListener('click', renderFinal);
-
-  // Диалог
-  if (loc.character) {
-    document.getElementById('talk-btn')?.addEventListener('click', () => {
-      showDialogue(loc.character, dialogueStates[loc.character] || "start");
-    });
-  }
-
-  checkFinalUnlock();
 }
 
 // ========== ПОДЛОКАЦИИ ==========
@@ -429,23 +439,48 @@ function showSublocationDetails(subloc) {
     <p><b>${subloc.name}</b></p>
     <p>${subloc.description}</p>
   `);
+  addDiscoveredInfo(subloc.description);
 }
 
 // ========== ЗАМЕТКИ ==========
 function renderNotes() {
-  showModal("Заметки", `
-    <textarea id="notes-textarea" style="width:100%; height:150px;">${playerNotes}</textarea><br><br>
-    <button class="btn" id="save-notes-btn">Сохранить</button>
-    <button class="btn" id="back-btn">Назад</button>
-  `, () => {
-    document.getElementById("save-notes-btn")?.addEventListener("click", () => {
-      playerNotes = document.getElementById("notes-textarea").value;
-      saveProgress();
-      alert("Заметки сохранены.");
+  const notesList = playerNotes.length > 0
+    ? playerNotes.map((note, i) =>
+        `<div style="display:flex; justify-content:space-between; margin:0.5rem 0;">
+           <span>${note}</span>
+           <button class="btn btn-delete" data-index="${i}">Удалить</button>
+         </div>`
+      ).join('')
+    : "<p>Заметок пока нет.</p>";
+
+  const modalContent = `
+    <h3>Добавить новую заметку</h3>
+    <textarea id="new-note-textarea" placeholder="Введите заметку..." style="width:100%; height:80px;"></textarea><br><br>
+    <button class="btn" id="add-note-btn">Добавить</button>
+    <hr style="margin:1rem 0;">
+    <h3>Ваши заметки</h3>
+    <div id="notes-list">${notesList}</div>
+  `;
+
+  showModal("Заметки", modalContent, () => {
+    document.getElementById("add-note-btn")?.addEventListener("click", () => {
+      const textarea = document.getElementById("new-note-textarea");
+      const noteText = textarea.value.trim();
+      if (noteText) {
+        playerNotes.push(noteText);
+        saveProgress();
+        textarea.value = "";
+        renderNotes();
+      }
     });
 
-    document.getElementById("back-btn")?.addEventListener("click", () => {
-      renderLocation(currentLocationIndex);
+    document.querySelectorAll(".btn-delete").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const index = parseInt(btn.dataset.index);
+        playerNotes.splice(index, 1);
+        saveProgress();
+        renderNotes();
+      });
     });
   });
 }
@@ -457,9 +492,9 @@ function renderInfo() {
     : "<p>Информация пока не собрана.</p>";
 
   showModal("Информация", infoList + '<br><button class="btn" id="back-btn">Назад</button>', () => {
-    document.getElementById("back-btn")?.addEventListener("click", () => {
-      renderLocation(currentLocationIndex);
-    });
+    document.getElementById("back-btn").onclick = () => {
+      document.body.removeChild(document.querySelector(".modal"));
+    };
   });
 }
 
@@ -471,15 +506,16 @@ function renderLocationSelect() {
 
   showModal("Выбор локации", list + '<br><button class="btn" id="back-btn">Назад</button>', () => {
     document.querySelectorAll("button[data-index]").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.onclick = () => {
         const idx = parseInt(btn.dataset.index);
+        document.body.removeChild(document.querySelector(".modal"));
         renderLocation(idx);
-      });
+      };
     });
 
-    document.getElementById("back-btn")?.addEventListener("click", () => {
-      renderLocation(currentLocationIndex);
-    });
+    document.getElementById("back-btn").onclick = () => {
+      document.body.removeChild(document.querySelector(".modal"));
+    };
   });
 }
 
@@ -507,15 +543,15 @@ function renderFinal() {
     <div id="final-result" style="margin-top:1rem;"></div>
   `, () => {
     document.getElementById("submit-final-btn").onclick = () => {
-      const val = document.getElementById("final-version-select").value;
-      if (!val) {
+      const selected = document.getElementById("final-version-select").value;
+      if (!selected) {
         alert("Пожалуйста, выберите версию.");
         return;
       }
 
       const correct = "maid_anna";
       const resultDiv = document.getElementById("final-result");
-      if (val === correct) {
+      if (selected === correct) {
         resultDiv.innerHTML = `<p style="color:green;"><b>Верно!</b> Горничная Анна была виновна. Поздравляем!</p>`;
       } else {
         resultDiv.innerHTML = `<p style="color:red;"><b>Неверно.</b> Это не правильный подозреваемый.</p>`;
@@ -523,20 +559,12 @@ function renderFinal() {
     };
 
     document.getElementById("back-btn").onclick = () => {
-      renderLocation(currentLocationIndex);
+      document.body.removeChild(document.querySelector(".modal"));
     };
   });
 }
 
-// ========== УЛИКИ ==========
-function addDiscoveredInfo(text) {
-  if (!discoveredInfo.includes(text)) {
-    discoveredInfo.push(text);
-    saveProgress();
-  }
-}
-
-// ========== СОХРАНЕНИЕ/ЗАГРУЗКА ПРОГРЕССА ==========
+// ========== СОХРАНЕНИЕ ПРОГРЕССА ==========
 function saveProgress() {
   localStorage.setItem("detectiveGameSave", JSON.stringify({
     discoveredInfo,
@@ -552,52 +580,26 @@ function loadProgress() {
   if (data) {
     const saved = JSON.parse(data);
     discoveredInfo = saved.discoveredInfo || [];
-    playerNotes = saved.playerNotes || "";
+    playerNotes = saved.playerNotes || [];
     currentLocationIndex = saved.currentLocationIndex || 0;
     finalUnlocked = saved.finalUnlocked || false;
     dialogueStates = saved.dialogueStates || {};
   }
 }
 
-// ========== ПРОВЕРКА ФИНАЛА ==========
+function addDiscoveredInfo(text) {
+  if (!discoveredInfo.includes(text)) {
+    discoveredInfo.push(text);
+    saveProgress();
+  }
+}
+
 function checkFinalUnlock() {
   if (discoveredInfo.length >= 5) {
+    document.getElementById("final-btn").classList.remove("hidden");
     finalUnlocked = true;
-    document.getElementById('final-btn')?.classList.remove("hidden");
   }
 }
 
 // ========== ЗАПУСК ИГРЫ ==========
-function renderMainMenu() {
-  app.innerHTML = `
-    <header><h1>Дело поместья Винтер</h1></header>
-    <main>
-      <div class="content-box">
-        <button class="btn" id="start-btn">Начать прохождение</button>
-      </div>
-    </main>
-  `;
-  document.getElementById("start-btn").onclick = () => {
-    renderIntro();
-  };
-}
-
-function renderIntro() {
-  app.innerHTML = `
-    <header><h1>Дело поместья Винтер</h1></header>
-    <main>
-      <div class="content-box" style="max-width:400px;">
-        <p>Добрый день, детектив! Сегодня нам предстоит расследовать дело.</p>
-        <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
-        <button class="btn" id="begin-game-btn">Начать</button>
-      </div>
-    </main>
-  `;
-  document.getElementById("begin-game-btn").onclick = () => {
-    loadProgress();
-    renderLocation(currentLocationIndex);
-  };
-}
-
-// ========== ЗАПУСК ==========
 renderMainMenu();
