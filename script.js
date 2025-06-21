@@ -280,53 +280,88 @@ const locations = [
 let discoveredInfo = [];
 let playerNotes = "";
 let currentLocationIndex = 0;
-let currentSublocationIndex = null;
-let currentDialogueCharacter = null;
-let currentDialogueNode = "start";
 let finalUnlocked = false;
 
 const app = document.getElementById("app");
 
-function updateDialogue(text, append = true) {
-  const area = document.getElementById("dialogue-area");
-  if (append) {
-    area.innerHTML += "<p>" + text + "</p>";
-  } else {
-    area.innerHTML = "<p>" + text + "</p>";
-  }
-  area.scrollTop = area.scrollHeight;
+// ========== СОСТОЯНИЕ ДИАЛОГОВ ==========
+let dialogueStates = {};
+
+// ========== ОТОБРАЖЕНИЕ ВСПЛЫВАЮЩИХ ОКОН ==========
+function showModal(title, content, onClose = () => {}) {
+  const modalHTML = `
+    <div class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>${title}</h2>
+        <div id="modal-body">${content}</div>
+      </div>
+    </div>`;
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = modalHTML;
+  const modal = tempDiv.firstElementChild;
+  document.body.appendChild(modal);
+
+  modal.querySelector(".close-btn").onclick = () => {
+    document.body.removeChild(modal);
+    onClose();
+  };
 }
 
+// ========== ОТОБРАЖЕНИЕ ДИАЛОГОВ ==========
 function showDialogue(charId, nodeId) {
   const char = characters[charId];
-  const node = char.dialogueTree[nodeId];
-  if (!node) return;
-  let optionsHTML = node.options.map(opt => 
-    `<button class="btn" data-next="${opt.next}">${opt.text}</button>`
-  ).join('');
-  app.innerHTML += `
-    <div class="content-box" style="margin-top:1rem;" id="dialogue-options">
+  let node = char.dialogueTree[nodeId];
+
+  function buildDialogContent(nodeId) {
+    const node = char.dialogueTree[nodeId];
+    let optionsHTML = node.options.map(opt =>
+      `<button class="btn" data-next="${opt.next}">${opt.text}</button>`
+    ).join("<br>");
+    let restartBtn = nodeId !== "start" ? `<br><button class="btn btn-restart" data-restart>Начать сначала</button>` : "";
+
+    return `
       <p><b>${char.name}:</b> ${node.text}</p>
-      <div class="btn-group">${optionsHTML}</div>
-    </div>
-  `;
-  document.querySelectorAll("#dialogue-options .btn").forEach(btn => {
-    btn.onclick = () => {
-      const nextNode = btn.dataset.next;
-      app.querySelector("#dialogue-options").remove();
-      if (nextNode !== "end") {
-        showDialogue(charId, nextNode);
-      } else {
-        updateDialogue(`<b>${char.name}:</b> ${char.dialogueTree.end.text}`);
-      }
-    };
-  });
+      <div class="btn-group" style="flex-wrap: wrap;">
+        ${optionsHTML}
+        ${restartBtn}
+      </div>`;
+  }
+
+  function render() {
+    showModal(`Диалог с ${char.name}`, buildDialogContent(nodeId), () => {
+      // Обработчики событий
+      document.querySelectorAll("#modal-body .btn[data-next]").forEach(btn => {
+        btn.onclick = () => {
+          const nextNode = btn.dataset.next;
+          dialogueStates[charId] = nextNode;
+          node = char.dialogueTree[nextNode];
+          render();
+        };
+      });
+
+      document.querySelectorAll("#modal-body .btn[data-restart]").forEach(btn => {
+        btn.onclick = () => {
+          dialogueStates[charId] = "start";
+          node = char.dialogueTree["start"];
+          render();
+        };
+      });
+    });
+  }
+
+  if (dialogueStates[charId]) {
+    nodeId = dialogueStates[charId];
+  }
+
+  node = char.dialogueTree[nodeId];
+  render();
 }
 
+// ========== РЕНДЕРИНГ ЛОКАЦИЙ ==========
 function renderLocation(index) {
   const loc = locations[index];
   currentLocationIndex = index;
-  currentSublocationIndex = null;
 
   // Подлокации
   let sublocationsHTML = "";
@@ -365,167 +400,174 @@ function renderLocation(index) {
   `;
 
   // Обработчики подлокаций
-  const subBtns = document.querySelectorAll('#sublocations-buttons .btn');
-  subBtns.forEach(btn => {
+  document.querySelectorAll('#sublocations-buttons .btn').forEach(btn => {
     btn.onclick = () => {
       const idx = parseInt(btn.dataset.index);
-      currentSublocationIndex = idx;
-      updateDialogue(`Вы выбрали: ${loc.sublocations[idx].description}`, false);
+      showSublocationDetails(loc.sublocations[idx]);
     };
   });
 
   // Обработчики кнопок
-  document.getElementById('notes-btn').onclick = renderNotes;
-  document.getElementById('info-btn').onclick = renderInfo;
-  document.getElementById('location-select-btn').onclick = renderLocationSelect;
-  document.getElementById('final-btn').onclick = renderFinal;
+  document.getElementById('notes-btn')?.addEventListener('click', renderNotes);
+  document.getElementById('info-btn')?.addEventListener('click', renderInfo);
+  document.getElementById('location-select-btn')?.addEventListener('click', renderLocationSelect);
+  document.getElementById('final-btn')?.addEventListener('click', renderFinal);
 
   // Диалог
   if (loc.character) {
-    document.getElementById('talk-btn').onclick = () => {
-      currentDialogueCharacter = loc.character;
-      showDialogue(loc.character, "start");
-    };
+    document.getElementById('talk-btn')?.addEventListener('click', () => {
+      showDialogue(loc.character, dialogueStates[loc.character] || "start");
+    });
   }
 
   checkFinalUnlock();
 }
 
+// ========== ПОДЛОКАЦИИ ==========
+function showSublocationDetails(subloc) {
+  showModal("Осмотр подлокации", `
+    <p><b>${subloc.name}</b></p>
+    <p>${subloc.description}</p>
+  `);
+}
+
+// ========== ЗАМЕТКИ ==========
 function renderNotes() {
-  app.innerHTML = `
-    <header><h1>Заметки</h1></header>
-    <main>
-      <textarea id="notes-textarea" placeholder="Ваши заметки...">${playerNotes}</textarea>
-      <div style="margin-top:1rem;">
-        <button class="btn" id="save-notes-btn">Сохранить</button>
-        <button class="btn" id="back-btn">Назад</button>
-      </div>
-    </main>
-  `;
-  document.getElementById('save-notes-btn').onclick = () => {
-    playerNotes = document.getElementById('notes-textarea').value;
-    saveProgress();
-    alert("Заметки сохранены.");
-  };
-  document.getElementById('back-btn').onclick = () => {
-    loadProgress();
-    renderLocation(currentLocationIndex);
-  };
-}
+  showModal("Заметки", `
+    <textarea id="notes-textarea" style="width:100%; height:150px;">${playerNotes}</textarea><br><br>
+    <button class="btn" id="save-notes-btn">Сохранить</button>
+    <button class="btn" id="back-btn">Назад</button>
+  `, () => {
+    document.getElementById("save-notes-btn")?.addEventListener("click", () => {
+      playerNotes = document.getElementById("notes-textarea").value;
+      saveProgress();
+      alert("Заметки сохранены.");
+    });
 
-function renderInfo() {
-  app.innerHTML = `
-    <header><h1>Информация</h1></header>
-    <main>
-      <div class="content-box">
-        ${discoveredInfo.length > 0 ? discoveredInfo.map(info => `<p>• ${info}</p>`).join('') : "<p>Информация пока не собрана.</p>"}
-      </div>
-      <button class="btn" id="back-btn">Назад</button>
-    </main>
-  `;
-  document.getElementById('back-btn').onclick = () => {
-    renderLocation(currentLocationIndex);
-  };
-}
-
-function renderLocationSelect() {
-  app.innerHTML = `
-    <header><h1>Выбор локации</h1></header>
-    <main>
-      <div class="content-box">
-        ${locations.map((loc, i) => 
-          `<button class="btn" data-index="${i}">${loc.name}</button>`
-        ).join('')}
-      </div>
-      <button class="btn" id="back-btn">Назад</button>
-    </main>
-  `;
-  document.querySelectorAll('button[data-index]').forEach(btn => {
-    btn.onclick = () => {
-      const idx = parseInt(btn.dataset.index);
-      renderLocation(idx);
-    };
+    document.getElementById("back-btn")?.addEventListener("click", () => {
+      renderLocation(currentLocationIndex);
+    });
   });
-  document.getElementById('back-btn').onclick = () => {
-    renderLocation(currentLocationIndex);
-  };
 }
 
-function checkFinalUnlock() {
-  if (discoveredInfo.length >= 5) {
-    finalUnlocked = true;
-    document.getElementById('final-btn').classList.remove("hidden");
-  }
+// ========== ИНФОРМАЦИЯ ==========
+function renderInfo() {
+  const infoList = discoveredInfo.length
+    ? discoveredInfo.map(info => `<p>• ${info}</p>`).join("")
+    : "<p>Информация пока не собрана.</p>";
+
+  showModal("Информация", infoList + '<br><button class="btn" id="back-btn">Назад</button>', () => {
+    document.getElementById("back-btn")?.addEventListener("click", () => {
+      renderLocation(currentLocationIndex);
+    });
+  });
 }
 
+// ========== ВЫБОР ЛОКАЦИИ ==========
+function renderLocationSelect() {
+  const list = locations.map((loc, i) =>
+    `<button class="btn" data-index="${i}">${loc.name}</button>`
+  ).join('');
+
+  showModal("Выбор локации", list + '<br><button class="btn" id="back-btn">Назад</button>', () => {
+    document.querySelectorAll("button[data-index]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index);
+        renderLocation(idx);
+      });
+    });
+
+    document.getElementById("back-btn")?.addEventListener("click", () => {
+      renderLocation(currentLocationIndex);
+    });
+  });
+}
+
+// ========== ФИНАЛ ==========
 function renderFinal() {
   if (!finalUnlocked) {
     alert("Финал откроется после сбора достаточного количества улик.");
     return;
   }
-  app.innerHTML = `
-    <header><h1>Финал</h1></header>
-    <main>
-      <div class="content-box" style="max-width: 600px;">
-        <p>Выберите версию преступления, которую хотите представить:</p>
-        <select id="final-version-select" style="width:100%; padding:0.5rem; margin-bottom: 1rem;">
-          <option value="">-- Выберите версию --</option>
-          <option value="lord_winter">Лорд Винтер виновен</option>
-          <option value="maid_anna">Горничная Анна виновна</option>
-          <option value="butler_james">Дворецкий Джеймс виновен</option>
-          <option value="cook_mary">Повар Мария виновна</option>
-          <option value="neighbor_smith">Сосед Смит виновен</option>
-        </select>
-        <button class="btn" id="submit-final-btn">Подтвердить</button>
-        <button class="btn" id="back-btn">Назад</button>
-        <div id="final-result" style="margin-top: 1rem;"></div>
-      </div>
-    </main>
-  `;
-  document.getElementById('submit-final-btn').onclick = () => {
-    const val = document.getElementById('final-version-select').value;
-    if (!val) {
-      alert("Пожалуйста, выберите версию.");
-      return;
-    }
-    checkFinalAnswer(val);
-  };
-  document.getElementById('back-btn').onclick = () => {
-    renderLocation(currentLocationIndex);
-  };
+
+  const selectOptions = Object.keys(characters).map(id => {
+    const ch = characters[id];
+    return `<option value="${id}">${ch.name} виновен</option>`;
+  }).join('');
+
+  showModal("Финал", `
+    <p>Выберите версию преступления:</p>
+    <select id="final-version-select" style="width:100%; padding:0.5rem; margin-bottom:1rem;">
+      <option value="">-- Выберите версию --</option>
+      ${selectOptions}
+    </select>
+    <br><br>
+    <button class="btn" id="submit-final-btn">Подтвердить</button>
+    <button class="btn" id="back-btn">Назад</button>
+    <div id="final-result" style="margin-top:1rem;"></div>
+  `, () => {
+    document.getElementById("submit-final-btn").onclick = () => {
+      const val = document.getElementById("final-version-select").value;
+      if (!val) {
+        alert("Пожалуйста, выберите версию.");
+        return;
+      }
+
+      const correct = "maid_anna";
+      const resultDiv = document.getElementById("final-result");
+      if (val === correct) {
+        resultDiv.innerHTML = `<p style="color:green;"><b>Верно!</b> Горничная Анна была виновна. Поздравляем!</p>`;
+      } else {
+        resultDiv.innerHTML = `<p style="color:red;"><b>Неверно.</b> Это не правильный подозреваемый.</p>`;
+      }
+    };
+
+    document.getElementById("back-btn").onclick = () => {
+      renderLocation(currentLocationIndex);
+    };
+  });
 }
 
-function checkFinalAnswer(chosen) {
-  const correct = "maid_anna";
-  const resultDiv = document.getElementById('final-result');
-  if (chosen === correct) {
-    resultDiv.innerHTML = `<p style="color:green;"><b>Верно!</b> Горничная Анна была виновна. Поздравляем, вы раскрыли дело!</p>`;
-  } else {
-    resultDiv.innerHTML = `<p style="color:red;"><b>Неверно.</b> Это не правильный подозреваемый. Попробуйте снова или просмотрите заметки и информацию.</p>`;
+// ========== УЛИКИ ==========
+function addDiscoveredInfo(text) {
+  if (!discoveredInfo.includes(text)) {
+    discoveredInfo.push(text);
+    saveProgress();
   }
 }
 
+// ========== СОХРАНЕНИЕ/ЗАГРУЗКА ПРОГРЕССА ==========
 function saveProgress() {
-  const saveData = {
+  localStorage.setItem("detectiveGameSave", JSON.stringify({
     discoveredInfo,
     playerNotes,
     currentLocationIndex,
-    finalUnlocked
-  };
-  localStorage.setItem('detectiveGameSave', JSON.stringify(saveData));
+    finalUnlocked,
+    dialogueStates
+  }));
 }
 
 function loadProgress() {
-  const data = localStorage.getItem('detectiveGameSave');
+  const data = localStorage.getItem("detectiveGameSave");
   if (data) {
-    const saveData = JSON.parse(data);
-    discoveredInfo = saveData.discoveredInfo || [];
-    playerNotes = saveData.playerNotes || "";
-    currentLocationIndex = saveData.currentLocationIndex || 0;
-    finalUnlocked = saveData.finalUnlocked || false;
+    const saved = JSON.parse(data);
+    discoveredInfo = saved.discoveredInfo || [];
+    playerNotes = saved.playerNotes || "";
+    currentLocationIndex = saved.currentLocationIndex || 0;
+    finalUnlocked = saved.finalUnlocked || false;
+    dialogueStates = saved.dialogueStates || {};
   }
 }
 
+// ========== ПРОВЕРКА ФИНАЛА ==========
+function checkFinalUnlock() {
+  if (discoveredInfo.length >= 5) {
+    finalUnlocked = true;
+    document.getElementById('final-btn')?.classList.remove("hidden");
+  }
+}
+
+// ========== ЗАПУСК ИГРЫ ==========
 function renderMainMenu() {
   app.innerHTML = `
     <header><h1>Дело поместья Винтер</h1></header>
@@ -535,7 +577,7 @@ function renderMainMenu() {
       </div>
     </main>
   `;
-  document.getElementById('start-btn').onclick = () => {
+  document.getElementById("start-btn").onclick = () => {
     renderIntro();
   };
 }
@@ -551,11 +593,11 @@ function renderIntro() {
       </div>
     </main>
   `;
-  document.getElementById('begin-game-btn').onclick = () => {
+  document.getElementById("begin-game-btn").onclick = () => {
     loadProgress();
     renderLocation(currentLocationIndex);
   };
 }
 
-// Запуск игры
+// ========== ЗАПУСК ==========
 renderMainMenu();
