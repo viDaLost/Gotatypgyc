@@ -1,4 +1,4 @@
-/* ========== ОБЩИЕ СТИЛИ ========== */
+/* Общие стили */
 
 @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
 
@@ -9,9 +9,9 @@
 body {
   margin: 0;
   padding: 0;
-  background: #121212;   
+  background: #121212;
   color: #eee;
-  font-family: 'Special Elite', monospace;
+  font-family: 'Special Elite', monospace, monospace;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -72,7 +72,6 @@ main, section {
   margin: 0.4rem;
   transition: background 0.3s ease, color 0.3s ease;
   user-select: none;
-  width: 100%;
 }
 
 .btn:hover, .btn:focus {
@@ -137,7 +136,7 @@ main, section {
   border: 1px solid #444;
   border-radius: 6px;
   padding: 0.5rem;
-  font-family: 'Special Elite', monospace;
+  font-family: 'Special Elite', monospace, monospace;
   font-size: 1rem;
   resize: none;
 }
@@ -200,7 +199,7 @@ main, section {
   text-align: center;
 }
 
-/* ========== АДАПТИВНОСТЬ ========== */
+/* Адаптив */
 
 @media (max-width: 480px) {
   #app {
@@ -209,9 +208,7 @@ main, section {
   #notes-textarea {
     width: 100%;
   }
-  #location-description,
-  #dialogue-area,
-  #final-dialogue {
+  #location-description, #dialogue-area, #final-dialogue {
     max-width: 100%;
   }
 }
