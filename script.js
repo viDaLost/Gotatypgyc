@@ -278,44 +278,13 @@ const locations = [
 ];
 
 let discoveredInfo = [];
-let playerNotes = []; // Храним массив строк вместо строки
+let playerNotes = []; // Теперь массив строк
 let currentLocationIndex = 0;
 let finalUnlocked = false;
 
 const app = document.getElementById("app");
 
-// ========== РЕНДЕРИНГ ИГРОВОГО ИНТЕРФЕЙСА ==========
-function renderMainMenu() {
-  app.innerHTML = `
-    <header><h1>Дело поместья Винтер</h1></header>
-    <main>
-      <div class="content-box">
-        <button class="btn" id="start-btn">Начать прохождение</button>
-      </div>
-    </main>
-  `;
-  document.getElementById('start-btn').onclick = () => {
-    renderIntro();
-  };
-}
-
-function renderIntro() {
-  app.innerHTML = `
-    <header><h1>Дело поместья Винтер</h1></header>
-    <main>
-      <div class="content-box" style="max-width:400px;">
-        <p>Добрый день, детектив! Сегодня нам предстоит расследовать дело.</p>
-        <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
-        <button class="btn" id="begin-game-btn">Начать</button>
-      </div>
-    </main>
-  `;
-  document.getElementById('begin-game-btn').onclick = () => {
-    loadProgress();
-    renderLocation(currentLocationIndex);
-  };
-}
-
+// ========== РЕНДЕРИНГ ЛОКАЦИЙ ==========
 function renderLocation(index) {
   const loc = locations[index];
   currentLocationIndex = index;
@@ -352,23 +321,26 @@ function renderLocation(index) {
     </main>
   `;
 
-  document.getElementById('notes-btn')?.addEventListener('click', renderNotes);
-  document.getElementById('info-btn')?.addEventListener('click', renderInfo);
-  document.getElementById('location-select-btn')?.addEventListener('click', renderLocationSelect);
-  document.getElementById('final-btn')?.addEventListener('click', renderFinal);
-
-  if (loc.character) {
-    document.getElementById('talk-btn')?.addEventListener('click', () => {
-      showDialogue(loc.character, dialogueStates[loc.character] || "start");
-    });
-  }
-
+  // Подлокации
   document.querySelectorAll('#sublocations-buttons .btn').forEach(btn => {
     btn.onclick = () => {
       const idx = parseInt(btn.dataset.index);
       showSublocationDetails(loc.sublocations[idx]);
     };
   });
+
+  // Кнопки действий
+  document.getElementById('notes-btn')?.addEventListener('click', renderNotes);
+  document.getElementById('info-btn')?.addEventListener('click', renderInfo);
+  document.getElementById('location-select-btn')?.addEventListener('click', renderLocationSelect);
+  document.getElementById('final-btn')?.addEventListener('click', renderFinal);
+
+  // Диалог
+  if (loc.character) {
+    document.getElementById('talk-btn')?.addEventListener('click', () => {
+      showDialogue(loc.character, dialogueStates[loc.character] || "start");
+    });
+  }
 
   checkFinalUnlock();
 }
@@ -396,7 +368,7 @@ function showModal(title, content, onClose = () => {}) {
 function showDialogue(charId, nodeId) {
   const char = characters[charId];
   let node = char.dialogueTree[nodeId];
-  
+
   function buildDialogContent(nodeId) {
     const n = char.dialogueTree[nodeId];
     let optionsHTML = n.options.map(opt =>
@@ -430,6 +402,11 @@ function showDialogue(charId, nodeId) {
     });
   }
 
+  if (dialogueStates[charId]) {
+    nodeId = dialogueStates[charId];
+  }
+
+  node = char.dialogueTree[nodeId];
   render();
 }
 
@@ -440,6 +417,13 @@ function showSublocationDetails(subloc) {
     <p>${subloc.description}</p>
   `);
   addDiscoveredInfo(subloc.description);
+}
+
+function addDiscoveredInfo(text) {
+  if (!discoveredInfo.includes(text)) {
+    discoveredInfo.push(text);
+    saveProgress();
+  }
 }
 
 // ========== ЗАМЕТКИ ==========
@@ -564,7 +548,7 @@ function renderFinal() {
   });
 }
 
-// ========== СОХРАНЕНИЕ ПРОГРЕССА ==========
+// ========== СОХРАНЕНИЕ ==========
 function saveProgress() {
   localStorage.setItem("detectiveGameSave", JSON.stringify({
     discoveredInfo,
@@ -587,13 +571,7 @@ function loadProgress() {
   }
 }
 
-function addDiscoveredInfo(text) {
-  if (!discoveredInfo.includes(text)) {
-    discoveredInfo.push(text);
-    saveProgress();
-  }
-}
-
+// ========== ПРОВЕРКА УЛИК ==========
 function checkFinalUnlock() {
   if (discoveredInfo.length >= 5) {
     document.getElementById("final-btn").classList.remove("hidden");
@@ -602,4 +580,36 @@ function checkFinalUnlock() {
 }
 
 // ========== ЗАПУСК ИГРЫ ==========
+function renderMainMenu() {
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main>
+      <div class="content-box">
+        <button class="btn" id="start-btn">Начать прохождение</button>
+      </div>
+    </main>
+  `;
+  document.getElementById("start-btn").onclick = () => {
+    renderIntro();
+  };
+}
+
+function renderIntro() {
+  app.innerHTML = `
+    <header><h1>Дело поместья Винтер</h1></header>
+    <main>
+      <div class="content-box" style="max-width:400px;">
+        <p>Добрый день, детектив! Сегодня нам предстоит расследовать дело.</p>
+        <p>Цель: пройти игру с наименьшим количеством подсказок от помощника.</p>
+        <button class="btn" id="begin-game-btn">Начать</button>
+      </div>
+    </main>
+  `;
+  document.getElementById("begin-game-btn").onclick = () => {
+    loadProgress();
+    renderLocation(currentLocationIndex);
+  };
+}
+
+// ========== ЗАПУСК ==========
 renderMainMenu();
