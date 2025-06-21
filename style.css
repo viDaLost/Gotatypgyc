@@ -1,21 +1,19 @@
-/* Общие стили */
-
-@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
-
+/* Reset */
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
+/* Общие стили */
 body {
-  margin: 0;
-  padding: 0;
-  background: #121212;
+  background-color: #121212;
   color: #eee;
-  font-family: 'Special Elite', monospace, monospace;
+  font-family: 'Special Elite', monospace;
+  user-select: none;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  user-select: none;
 }
 
 #app {
@@ -27,6 +25,7 @@ body {
   flex-direction: column;
 }
 
+/* Заголовок */
 header {
   text-align: center;
   margin-bottom: 1rem;
@@ -40,6 +39,7 @@ header h1 {
   text-shadow: 0 0 6px #f5c518;
 }
 
+/* Основной контент */
 main, section {
   flex-grow: 1;
   display: flex;
@@ -61,6 +61,7 @@ main, section {
   user-select: text;
 }
 
+/* Кнопки */
 .btn {
   background: #333;
   color: #f5c518;
@@ -84,6 +85,7 @@ main, section {
   display: none !important;
 }
 
+/* Локации */
 #location-title {
   font-weight: 700;
   font-size: 1.4rem;
@@ -105,6 +107,7 @@ main, section {
   user-select: text;
 }
 
+/* Диалоги */
 #dialogue-area {
   background: #222;
   border-radius: 8px;
@@ -120,6 +123,7 @@ main, section {
   user-select: text;
 }
 
+/* Группы кнопок */
 .btn-group {
   display: flex;
   flex-wrap: wrap;
@@ -128,6 +132,7 @@ main, section {
   margin-bottom: 1rem;
 }
 
+/* Заметки */
 #notes-textarea {
   width: 90%;
   height: 150px;
@@ -136,11 +141,12 @@ main, section {
   border: 1px solid #444;
   border-radius: 6px;
   padding: 0.5rem;
-  font-family: 'Special Elite', monospace, monospace;
+  font-family: 'Special Elite', monospace;
   font-size: 1rem;
   resize: none;
 }
 
+/* Информация */
 #info-list {
   max-height: 300px;
   overflow-y: auto;
@@ -150,6 +156,7 @@ main, section {
   font-size: 1rem;
 }
 
+/* Список локаций */
 #location-list {
   list-style: none;
   padding-left: 0;
@@ -172,6 +179,7 @@ main, section {
   color: #121212;
 }
 
+/* Финал */
 #final-dialogue {
   background: #1c1c1c;
   border-radius: 8px;
@@ -200,7 +208,6 @@ main, section {
 }
 
 /* Адаптив */
-
 @media (max-width: 480px) {
   #app {
     padding: 0.5rem;
