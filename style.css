@@ -1,38 +1,59 @@
+:root {
+  --bg: #0a0a0a;
+  --fg: #eaeaea;
+  --accent: #c49a6c;
+  --panel: #1c1c1c;
+  --font-main: 'Cinzel Decorative', serif;
+}
+
 body {
   margin: 0;
-  padding: 0;
-  font-family: sans-serif;
-  background: #f2f2f2;
+  font-family: var(--font-main);
+  background-color: var(--bg);
+  color: var(--fg);
 }
+
 #app {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
   padding: 20px;
+  max-width: 600px;
+  margin: auto;
+}
+
+h1, h2, h3 {
   text-align: center;
 }
-.button {
-  padding: 12px 24px;
-  margin: 12px 0;
-  font-size: 18px;
-  background: #0066cc;
-  color: #fff;
+
+button {
+  background-color: var(--accent);
   border: none;
+  color: var(--bg);
+  padding: 10px 20px;
+  margin: 8px 0;
+  font-size: 18px;
+  cursor: pointer;
   border-radius: 6px;
   width: 100%;
-  max-width: 300px;
 }
-.dialog, #final {
-  background: #fff;
+
+.panel {
+  background-color: var(--panel);
   padding: 16px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  text-align: left;
-  width: 100%;
-  max-width: 480px;
+  margin: 12px 0;
 }
-.choice {
-  margin: 8px 0;
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  background-color: #111;
+  color: var(--fg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  resize: vertical;
+}
+img.map {
+  width: 100%;
+  border: 2px solid var(--accent);
+  margin: 16px 0;
+  border-radius: 8px;
 }
