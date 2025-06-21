@@ -1,3 +1,5 @@
+// === Инициализация данных ===
+
 let currentLocation = null;
 let facts = [];
 let notes = localStorage.getItem("notes") || "";
@@ -36,35 +38,18 @@ const locations = [
   },
 ];
 
-function showFact(text) {
-  facts.push(text);
-  updateFactsList();
-  showDialogue(text);
-}
+// === Основные функции ===
 
-function saveNotes() {
-  notes = document.getElementById("notes-textarea").value;
-  localStorage.setItem("notes", notes);
-}
-
-function updateNotesArea() {
-  document.getElementById("notes-textarea").value = notes;
-}
-
-function updateFactsList() {
-  const list = document.getElementById("facts-list");
-  list.innerHTML = "";
-  facts.forEach(f => {
-    const li = document.createElement("li");
-    li.textContent = f;
-    list.appendChild(li);
-  });
+function hideAllScreens() {
+  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
 }
 
 function showScreen(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+  hideAllScreens();
   document.getElementById(id).classList.remove("hidden");
 }
+
+// === Обработчики экранов ===
 
 function showWelcome() {
   showScreen("welcome-screen");
@@ -114,9 +99,29 @@ function showNotes() {
   showScreen("notes-screen");
 }
 
+function saveNotes() {
+  notes = document.getElementById("notes-textarea").value;
+  localStorage.setItem("notes", notes);
+}
+
+function updateNotesArea() {
+  const area = document.getElementById("notes-textarea");
+  if (area) area.value = notes;
+}
+
 function showFacts() {
   updateFactsList();
   showScreen("facts-screen");
+}
+
+function updateFactsList() {
+  const list = document.getElementById("facts-list");
+  list.innerHTML = "";
+  facts.forEach(f => {
+    const li = document.createElement("li");
+    li.textContent = f;
+    list.appendChild(li);
+  });
 }
 
 function showInvestigation() {
@@ -163,7 +168,27 @@ function checkFinal(e) {
 function restartGame() {
   gameState = { visited: [], completed: false };
   facts = [];
+  notes = "";
   localStorage.removeItem("gameState");
   localStorage.removeItem("notes");
   showWelcome();
 }
+
+// === Инициализация событий при загрузке DOM ===
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Привязываем обработчики к кнопкам
+  window.showWelcome = showWelcome;
+  window.showIntro = showIntro;
+  window.startGame = startGame;
+  window.showLocations = showLocations;
+  window.showNotes = showNotes;
+  window.saveNotes = saveNotes;
+  window.showFacts = showFacts;
+  window.showInvestigation = showInvestigation;
+  window.checkFinal = checkFinal;
+  window.restartGame = restartGame;
+
+  // Показываем начальный экран
+  showWelcome();
+});
