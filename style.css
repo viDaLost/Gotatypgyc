@@ -7,13 +7,15 @@
 
 /* Общие стили */
 body {
-  background-color: #121212;
+  margin: 0;
+  padding: 0;
+  background: #121212;
   color: #eee;
   font-family: 'Special Elite', monospace;
-  user-select: none;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  user-select: none;
 }
 
 #app {
@@ -75,7 +77,8 @@ main, section {
   user-select: none;
 }
 
-.btn:hover, .btn:focus {
+.btn:hover,
+.btn:focus {
   background: #f5c518;
   color: #121212;
   outline: none;
@@ -215,7 +218,9 @@ main, section {
   #notes-textarea {
     width: 100%;
   }
-  #location-description, #dialogue-area, #final-dialogue {
+  #location-description,
+  #dialogue-area,
+  #final-dialogue {
     max-width: 100%;
   }
 }
