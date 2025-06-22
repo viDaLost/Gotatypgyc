@@ -1,4 +1,46 @@
-// ========== ДАННЫЕ ИГРЫ ==========
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Детективная игра</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 10px; background: #222; color: #eee; }
+  button.btn { background: #5588cc; border: none; color: white; padding: 8px 12px; margin: 3px; cursor: pointer; border-radius: 4px;}
+  button.btn:hover { background: #3366aa; }
+  #modal { display: none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); 
+           background: #333; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 70vh; overflow-y: auto; z-index: 1000; }
+  #modalClose { float: right; cursor: pointer; font-weight: bold; }
+  ul { padding-left: 20px; }
+  #characterInfo { margin-top: 15px; }
+  #sublocationList li { margin-bottom: 5px; }
+  #controls { margin-top: 15px; }
+</style>
+</head>
+<body>
+
+<h2 id="locationTitle"></h2>
+<p id="locationDescription"></p>
+
+<ul id="sublocationList"></ul>
+
+<div id="characterInfo"></div>
+
+<div id="controls">
+  <button id="notesButton" class="btn">Заметки</button>
+  <button id="infoButton" class="btn">Информация</button>
+  <button id="locationButton" class="btn">Следующая локация</button>
+</div>
+
+<div id="modal">
+  <span id="modalClose">&times;</span>
+  <h3 id="modalTitle"></h3>
+  <div id="modalContent"></div>
+</div>
+
+<script>
+// ===== ДАННЫЕ (оставим как есть) =====
+
 const characters = {
   "lord_winter": {
     name: "Лорд Винтер",
@@ -44,6 +86,7 @@ const characters = {
       }
     }
   },
+  // остальные персонажи как в вашем коде
   "maid_anna": {
     name: "Горничная Анна",
     description: "Молодая и застенчивая, но внимательная к деталям.",
@@ -174,56 +217,13 @@ const characters = {
         ]
       },
       relation: {
-        text: "Я ему предан. Он мой господин.",
+        text: "Я служу этой семье много лет.",
         options: [
-          { text: "Хорошо", next: "end" }
+          { text: "Спасибо", next: "end" }
         ]
       },
       end: {
-        text: "Если понадоблюсь — я здесь.",
-        options: []
-      }
-    }
-  },
-  "neighbor_smith": {
-    name: "Сосед Смит",
-    description: "Любопытный и несколько завистливый мужчина.",
-    motive: "Завидовал Лорду Винтеру и хотел получить его земли.",
-    dialogueTree: {
-      start: {
-        text: "Здравствуйте, детектив.",
-        options: [
-          { text: "Вы были в поместье в ночь убийства?", next: "visited" },
-          { text: "Что вы знаете о Лорде?", next: "know" },
-          { text: "Вы его ненавидели?", next: "hate" }
-        ]
-      },
-      visited: {
-        text: "Нет, я был дома. Но видел, как кто-то выходил из сарая.",
-        options: [
-          { text: "Кто?", next: "who" }
-        ]
-      },
-      who: {
-        text: "Не разглядел... но это был высокий человек.",
-        options: [
-          { text: "Хорошо", next: "end" }
-        ]
-      },
-      know: {
-        text: "Он был жестоким, но умен. Его убили неспроста.",
-        options: [
-          { text: "Хорошо", next: "end" }
-        ]
-      },
-      hate: {
-        text: "Не ненавидел... просто хотел то же, что и у него.",
-        options: [
-          { text: "Хорошо", next: "end" }
-        ]
-      },
-      end: {
-        text: "Если будут ещё вопросы — обращайтесь.",
+        text: "Если нужно — я здесь.",
         options: []
       }
     }
@@ -233,258 +233,246 @@ const characters = {
 const locations = [
   {
     id: "hall",
-    name: "Вестибюль поместья",
-    description: "Великий зал с массивной лестницей и старинными портретами на стенах. Здесь всегда прохладно, и кажется, будто за вами наблюдают портреты.",
+    title: "Главный зал",
+    description: "Большой зал с камином и креслами. Тут проходят вечеринки.",
     sublocations: [
-      { id: "portrait", name: "Осмотреть портреты", description: "Портреты разных поколений семьи Винтер." },
-      { id: "stairs", name: "Подняться по лестнице", description: "Лестница ведёт на второй этаж." },
-      { id: "door", name: "Осмотреть входную дверь", description: "Дверь крепкая, но с царапинами на ручке." }
+      {
+        id: "table",
+        description: "Около стола лежит записка с подозрительным текстом.",
+        facts: ["записка у стола"],
+        isOpen: true
+      },
+      {
+        id: "fireplace",
+        description: "Камин потушен, но на поленах есть следы.",
+        facts: ["следы на поленах"],
+        isOpen: false
+      }
     ],
-    character: "butler_james"
-  },
-  {
-    id: "library",
-    name: "Библиотека",
-    description: "Комната, полная древних книг и документов. Тут много пыли и запаха старой кожи.",
-    sublocations: [
-      { id: "desk", name: "Осмотреть письменный стол", description: "Стол покрыт бумагами и пером." },
-      { id: "bookshelf", name: "Осмотреть книжный шкаф", description: "Шкаф полон фолиантов, некоторые книги выглядят недавно перелистнутыми." },
-      { id: "window", name: "Осмотреть окно", description: "Окно с видом на сад, немного приоткрыто." }
-    ],
-    character: "lord_winter"
+    characters: ["lord_winter", "butler_james"]
   },
   {
     id: "kitchen",
-    name: "Кухня",
-    description: "Большое помещение с множеством кухонных принадлежностей. Запах свежей выпечки наполняет воздух.",
+    title: "Кухня",
+    description: "Тёплое место с запахом свежей выпечки.",
     sublocations: [
-      { id: "stove", name: "Осмотреть печь", description: "Печь все еще теплая." },
-      { id: "cupboard", name: "Осмотреть шкаф", description: "В шкафу много посуды и банок с консервами." },
-      { id: "door", name: "Осмотреть заднюю дверь", description: "Дверь ведет в сад." }
+      {
+        id: "pantry",
+        description: "Кладовка с закрытой дверью.",
+        facts: ["закрытая кладовка"],
+        isOpen: false
+      },
+      {
+        id: "stove",
+        description: "Плита горячая, кто-то недавно готовил.",
+        facts: ["горячая плита"],
+        isOpen: true
+      }
     ],
-    character: "cook_mary"
-  },
-  {
-    id: "garden",
-    name: "Сад",
-    description: "Большой ухоженный сад с цветами и кустарниками. Здесь тихо и спокойно.",
-    sublocations: [
-      { id: "bench", name: "Осмотреть скамейку", description: "На скамейке лежит записка." },
-      { id: "fountain", name: "Осмотреть фонтан", description: "Фонтан тихо журчит." },
-      { id: "path", name: "Осмотреть дорожку", description: "Дорожка ведет к калитке." }
-    ],
-    character: "neighbor_smith"
+    characters: ["maid_anna", "cook_mary"]
   }
 ];
 
-// ========== ПЕРЕМЕННЫЕ ==========
+// ===== Глобальные переменные =====
 let currentLocationIndex = 0;
-let discoveredInfo = [];
-let notes = [];
-let currentDialogueCharacter = null;
+let currentDialogNode = null;
+let currentDialogCharacter = null;
+let notes = JSON.parse(localStorage.getItem("notes")) || [];
+let facts = new Set();
 
-// ========== ЭЛЕМЕНТЫ ==========
-const mainContent = document.getElementById("mainContent");
-const locationTitle = document.getElementById("locationTitle");
-const locationDescription = document.getElementById("locationDescription");
-const sublocationList = document.getElementById("sublocationList");
-const characterInfo = document.getElementById("characterInfo");
-const notesButton = document.getElementById("notesButton");
-const infoButton = document.getElementById("infoButton");
-const locationButton = document.getElementById("locationButton");
+// ===== Функции =====
 
-const modal = document.getElementById("modal");
-const modalTitle = document.getElementById("modalTitle");
-const modalContent = document.getElementById("modalContent");
-const modalClose = document.getElementById("modalClose");
+function saveNotes() {
+  localStorage.setItem("notes", JSON.stringify(notes));
+}
 
-// ========== ФУНКЦИИ ==========
 function renderLocation() {
   const loc = locations[currentLocationIndex];
-  locationTitle.textContent = loc.name;
-  locationDescription.textContent = loc.description;
-  sublocationList.innerHTML = "";
-  loc.sublocations.forEach(subloc => {
+  document.getElementById("locationTitle").textContent = loc.title;
+  document.getElementById("locationDescription").textContent = loc.description;
+
+  // Список подлокаций
+  const ul = document.getElementById("sublocationList");
+  ul.innerHTML = "";
+  loc.sublocations.forEach((sub, i) => {
     const li = document.createElement("li");
-    const btn = document.createElement("button");
-    btn.textContent = subloc.name;
-    btn.className = "btn";
-    btn.onclick = () => showSublocationDetails(subloc);
-    li.appendChild(btn);
-    sublocationList.appendChild(li);
+    li.textContent = sub.description + (sub.isOpen ? " (открыто)" : " (закрыто)");
+    li.style.cursor = "pointer";
+    li.onclick = () => {
+      if (!sub.isOpen) {
+        alert("Это место закрыто.");
+        return;
+      }
+      // Добавить факты из подлокации
+      sub.facts.forEach(f => facts.add(f));
+      alert(sub.description + "\nФакты: " + sub.facts.join(", "));
+    };
+    ul.appendChild(li);
   });
 
-  renderCharacter(loc.character);
+  // Показать персонажей
+  const charDiv = document.getElementById("characterInfo");
+  charDiv.innerHTML = "";
+  loc.characters.forEach(charId => {
+    const c = characters[charId];
+    const btn = document.createElement("button");
+    btn.textContent = c.name;
+    btn.className = "btn";
+    btn.onclick = () => startDialog(charId);
+    charDiv.appendChild(btn);
+  });
 }
 
-function renderCharacter(charId) {
-  if (!charId || !characters[charId]) {
-    characterInfo.innerHTML = "<p>Нет персонажа в этой локации.</p>";
-    return;
-  }
-  const char = characters[charId];
-  characterInfo.innerHTML = `
-    <h3>${char.name}</h3>
-    <p>${char.description}</p>
-    <p><b>Мотив:</b> ${char.motive}</p>
-    <button class="btn" id="talkBtn">Поговорить</button>
-  `;
-
-  document.getElementById("talkBtn").onclick = () => {
-    currentDialogueCharacter = charId;
-    startDialogue(charId);
-  };
+function startDialog(charId) {
+  currentDialogCharacter = charId;
+  currentDialogNode = characters[charId].dialogueTree.start;
+  showDialog();
 }
 
-function showSublocationDetails(subloc) {
-  showModal(subloc.name, `
-    <p>${subloc.description}</p>
-  `);
-  addDiscoveredInfo(`${subloc.name}: ${subloc.description}`);
-}
-
-function addDiscoveredInfo(info) {
-  if (!discoveredInfo.includes(info)) {
-    discoveredInfo.push(info);
-  }
-}
-
-function showModal(title, content) {
-  modalTitle.textContent = title;
-  modalContent.innerHTML = content;
+function showDialog() {
+  const modal = document.getElementById("modal");
   modal.style.display = "block";
+
+  document.getElementById("modalTitle").textContent = characters[currentDialogCharacter].name;
+  const contentDiv = document.getElementById("modalContent");
+
+  // Текст реплики
+  contentDiv.innerHTML = `<p>${currentDialogNode.text}</p>`;
+
+  // Кнопки вариантов
+  currentDialogNode.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.textContent = opt.text;
+    btn.className = "btn";
+    btn.onclick = () => {
+      if (opt.next === "end") {
+        closeModal();
+        return;
+      }
+      currentDialogNode = characters[currentDialogCharacter].dialogueTree[opt.next];
+      showDialog();
+    };
+    contentDiv.appendChild(btn);
+  });
+
+  // Если нет опций, добавить кнопку закрытия
+  if (currentDialogNode.options.length === 0) {
+    const btn = document.createElement("button");
+    btn.textContent = "Закрыть";
+    btn.className = "btn";
+    btn.onclick = () => closeModal();
+    contentDiv.appendChild(btn);
+  }
 }
 
 function closeModal() {
+  const modal = document.getElementById("modal");
   modal.style.display = "none";
 }
 
-// ====== ЗАМЕТКИ ======
+// Функция показа заметок с делегированием
 function openNotes() {
-  let notesHtml = "";
+  const modal = document.getElementById("modal");
+  modal.style.display = "block";
+  document.getElementById("modalTitle").textContent = "Заметки";
+  const contentDiv = document.getElementById("modalContent");
+
   if (notes.length === 0) {
-    notesHtml = "<p>Заметок пока нет.</p>";
+    contentDiv.innerHTML = "<p>Заметок нет.</p>";
   } else {
-    notesHtml = "<ul>";
+    contentDiv.innerHTML = "";
+    const ul = document.createElement("ul");
     notes.forEach((note, i) => {
-      notesHtml += `<li>${note} <button class="btn" data-index="${i}" id="delNote${i}">Удалить</button></li>`;
+      const li = document.createElement("li");
+      li.textContent = note;
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Удалить";
+      delBtn.className = "btn";
+      delBtn.style.marginLeft = "10px";
+      delBtn.dataset.index = i; // сохраним индекс
+      li.appendChild(delBtn);
+
+      ul.appendChild(li);
     });
-    notesHtml += "</ul>";
+    contentDiv.appendChild(ul);
   }
-  notesHtml += `
-    <input type="text" id="newNoteInput" placeholder="Новая заметка" style="width:80%; margin-top:10px;">
-    <button class="btn" id="addNoteBtn">Добавить заметку</button>
-  `;
 
-  showModal("Заметки", notesHtml);
+  // Добавим поле для новой заметки
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "Новая заметка";
+  input.style.width = "70%";
+  input.style.marginRight = "10px";
 
-  document.getElementById("addNoteBtn").onclick = () => {
-    const input = document.getElementById("newNoteInput");
+  const addBtn = document.createElement("button");
+  addBtn.textContent = "Добавить";
+  addBtn.className = "btn";
+
+  addBtn.onclick = () => {
     const val = input.value.trim();
     if (val) {
       notes.push(val);
-      input.value = "";
-      openNotes(); // Обновить список
+      saveNotes();
+      openNotes(); // перерисовать заново
     }
   };
 
-  notes.forEach((_, i) => {
-    const delBtn = document.getElementById(`delNote${i}`);
-    if (delBtn) {
-      delBtn.onclick = () => {
-        notes.splice(i, 1);
-        openNotes();
-      };
-    }
-  });
+  contentDiv.appendChild(input);
+  contentDiv.appendChild(addBtn);
 }
 
-// ====== ИНФОРМАЦИЯ ======
+// Делегирование на кнопки удаления заметок
+document.getElementById("modalContent").addEventListener("click", (e) => {
+  if (e.target.tagName === "BUTTON" && e.target.textContent === "Удалить") {
+    const idx = e.target.dataset.index;
+    if (idx !== undefined) {
+      notes.splice(idx, 1);
+      saveNotes();
+      openNotes();
+    }
+  }
+});
+
+// Показ информации о найденных фактах
 function openInfo() {
-  if (discoveredInfo.length === 0) {
-    showModal("Информация", "<p>Вы пока ничего не изучили.</p>");
+  const modal = document.getElementById("modal");
+  modal.style.display = "block";
+  document.getElementById("modalTitle").textContent = "Информация";
+  const contentDiv = document.getElementById("modalContent");
+
+  if (facts.size === 0) {
+    contentDiv.innerHTML = "<p>Информация отсутствует.</p>";
   } else {
-    const infoHtml = "<ul>" + discoveredInfo.map(info => `<li>${info}</li>`).join("") + "</ul>";
-    showModal("Информация", infoHtml);
+    contentDiv.innerHTML = "<ul>" + Array.from(facts).map(f => `<li>${f}</li>`).join("") + "</ul>";
   }
 }
 
-// ====== ВЫБОР ЛОКАЦИИ ======
-function openLocationSelector() {
-  let listHtml = "<ul>";
-  locations.forEach((loc, idx) => {
-    listHtml += `<li><button class="btn" data-idx="${idx}">${loc.name}</button></li>`;
-  });
-  listHtml += "</ul>";
-  showModal("Выбор локации", listHtml);
-
-  locations.forEach((_, idx) => {
-    const btn = modalContent.querySelector(`button[data-idx="${idx}"]`);
-    if (btn) {
-      btn.onclick = () => {
-        currentLocationIndex = idx;
-        renderLocation();
-        closeModal();
-      };
-    }
-  });
+// Переход к следующей локации
+function nextLocation() {
+  currentLocationIndex = (currentLocationIndex + 1) % locations.length;
+  facts.clear();
+  renderLocation();
 }
 
-// ====== ДИАЛОГИ ======
-function startDialogue(charId) {
-  showDialogue(charId, "start");
-}
+// Обработчики кнопок
+document.getElementById("notesButton").onclick = openNotes;
+document.getElementById("infoButton").onclick = openInfo;
+document.getElementById("locationButton").onclick = nextLocation;
+document.getElementById("modalClose").onclick = closeModal;
 
-function showDialogue(charId, stateKey) {
-  const char = characters[charId];
-  const state = char.dialogueTree[stateKey];
-  if (!state) {
-    closeModal();
-    return;
-  }
-
-  let optionsHtml = "";
-  if (state.options.length > 0) {
-    optionsHtml = state.options.map(opt =>
-      `<button class="btn dialogue-option" data-next="${opt.next}">${opt.text}</button>`
-    ).join("");
-  } else {
-    optionsHtml = `<button class="btn" id="endDialogueBtn">Закончить разговор</button>`;
-  }
-
-  showModal(char.name, `
-    <p><b>${char.name}:</b> ${state.text}</p>
-    <div>${optionsHtml}</div>
-  `);
-
-  const optionButtons = modalContent.querySelectorAll(".dialogue-option");
-  optionButtons.forEach(btn => {
-    btn.onclick = () => {
-      const nextState = btn.getAttribute("data-next");
-      showDialogue(charId, nextState);
-    };
-  });
-
-  const endBtn = document.getElementById("endDialogueBtn");
-  if (endBtn) {
-    endBtn.onclick = () => {
-      closeModal();
-    };
-  }
-}
-
-// ========== СОБЫТИЯ ==========
-modalClose.onclick = closeModal;
-
+// Закрыть модал, если кликнули вне контента
 window.onclick = function(event) {
-  if (event.target == modal) {
+  const modal = document.getElementById("modal");
+  if (event.target === modal) {
     closeModal();
   }
-};
+}
 
-notesButton.onclick = openNotes;
-infoButton.onclick = openInfo;
-locationButton.onclick = openLocationSelector;
-
-// ========== ЗАПУСК ==========
+// Инициализация
 renderLocation();
+
+</script>
+
+</body>
+</html>
