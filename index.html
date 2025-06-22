@@ -2,18 +2,49 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Детективное расследование: Поместье Грейвуд</title>
   
   <!-- Подключаем шрифт -->
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet" />
-
+  
   <!-- Подключаем стили -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Основной контейнер игры -->
-  <div id="app"></div>
+  <div id="app">
+    <header>
+      <h1>Детективное расследование: Поместье Грейвуд</h1>
+    </header>
+
+    <main>
+      <section class="content-box">
+        <h2 id="locationTitle"></h2>
+        <p id="locationDescription"></p>
+
+        <ul id="sublocationList"></ul>
+      </section>
+
+      <section class="content-box" id="characterInfo">
+        <!-- Здесь будет информация о персонаже и кнопка "Поговорить" -->
+      </section>
+    </main>
+
+    <footer class="btn-group">
+      <button class="btn" id="notesButton">Заметки</button>
+      <button class="btn" id="infoButton">Информация</button>
+      <button class="btn" id="locationButton">Выбор локации</button>
+    </footer>
+  </div>
+
+  <!-- Модальное окно -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="modalClose" class="close-btn">&times;</span>
+      <h3 id="modalTitle"></h3>
+      <div id="modalContent"></div>
+    </div>
+  </div>
 
   <!-- Подключаем скрипт игры -->
   <script src="script.js"></script>
