@@ -364,52 +364,6 @@ function showModal(title, content, onClose = () => {}) {
   };
 }
 
-// ========== ДИАЛОГИ ==========
-function showDialogue(charId, nodeId) {
-  const char = characters[charId];
-  let node = char.dialogueTree[nodeId];
-
-  function buildDialogContent(nodeId) {
-    const n = char.dialogueTree[nodeId];
-    let optionsHTML = n.options.map(opt =>
-      `<button class="btn" data-next="${opt.next}">${opt.text}</button>`
-    ).join('<br>');
-    let restartBtn = nodeId !== "start" ? `<br><button class="btn btn-restart" data-restart>Начать сначала</button>` : "";
-
-    return `
-      <p><b>${char.name}:</b> ${n.text}</p>
-      <div class="btn-group" style="flex-wrap: wrap;">${optionsHTML}${restartBtn}</div>`;
-  }
-
-  function render() {
-    showModal(`Диалог с ${char.name}`, buildDialogContent(nodeId), () => {
-      document.querySelectorAll("#modal-body .btn[data-next]").forEach(btn => {
-        btn.onclick = () => {
-          const nextNode = btn.dataset.next;
-          dialogueStates[charId] = nextNode;
-          node = char.dialogueTree[nextNode];
-          render();
-        };
-      });
-
-      document.querySelectorAll("#modal-body .btn[data-restart]").forEach(btn => {
-        btn.onclick = () => {
-          dialogueStates[charId] = "start";
-          node = char.dialogueTree["start"];
-          render();
-        };
-      });
-    });
-  }
-
-  if (dialogueStates[charId]) {
-    nodeId = dialogueStates[charId];
-  }
-
-  node = char.dialogueTree[nodeId];
-  render();
-}
-
 // ========== ПОДЛОКАЦИИ ==========
 function showSublocationDetails(subloc) {
   showModal("Осмотр подлокации", `
@@ -417,13 +371,6 @@ function showSublocationDetails(subloc) {
     <p>${subloc.description}</p>
   `);
   addDiscoveredInfo(subloc.description);
-}
-
-function addDiscoveredInfo(text) {
-  if (!discoveredInfo.includes(text)) {
-    discoveredInfo.push(text);
-    saveProgress();
-  }
 }
 
 // ========== ЗАМЕТКИ ==========
@@ -490,11 +437,11 @@ function renderLocationSelect() {
 
   showModal("Выбор локации", list + '<br><button class="btn" id="back-btn">Назад</button>', () => {
     document.querySelectorAll("button[data-index]").forEach(btn => {
-      btn.onclick = () => {
+      btn.addEventListener("click", () => {
         const idx = parseInt(btn.dataset.index);
         document.body.removeChild(document.querySelector(".modal"));
-        renderLocation(idx);
-      };
+        renderLocation(idx); // Игрок переходит в выбранную локацию
+      });
     });
 
     document.getElementById("back-btn").onclick = () => {
@@ -503,52 +450,61 @@ function renderLocationSelect() {
   });
 }
 
-// ========== ФИНАЛ ==========
-function renderFinal() {
-  if (!finalUnlocked) {
-    alert("Финал откроется после сбора достаточного количества улик.");
-    return;
+// ========== ДИАЛОГИ ==========
+function showDialogue(charId, nodeId) {
+  const char = characters[charId];
+  let node = char.dialogueTree[nodeId];
+
+  function buildDialogContent(nodeId) {
+    const n = char.dialogueTree[nodeId];
+    let optionsHTML = n.options.map(opt =>
+      `<button class="btn" data-next="${opt.next}">${opt.text}</button>`
+    ).join('<br>');
+    let restartBtn = nodeId !== "start" ? `<br><button class="btn btn-restart" data-restart>Начать сначала</button>` : "";
+
+    return `
+      <p><b>${char.name}:</b> ${n.text}</p>
+      <div class="btn-group" style="flex-wrap: wrap;">${optionsHTML}${restartBtn}</div>`;
   }
 
-  const selectOptions = Object.keys(characters).map(id => {
-    const ch = characters[id];
-    return `<option value="${id}">${ch.name} виновен</option>`;
-  }).join('');
+  function render() {
+    showModal(`Диалог с ${char.name}`, buildDialogContent(nodeId), () => {
+      document.querySelectorAll("#modal-body .btn[data-next]").forEach(btn => {
+        btn.onclick = () => {
+          const nextNode = btn.dataset.next;
+          dialogueStates[charId] = nextNode;
+          node = char.dialogueTree[nextNode];
+          render();
+        };
+      });
 
-  showModal("Финал", `
-    <p>Выберите версию преступления:</p>
-    <select id="final-version-select" style="width:100%; padding:0.5rem; margin-bottom:1rem;">
-      <option value="">-- Выберите версию --</option>
-      ${selectOptions}
-    </select>
-    <br><br>
-    <button class="btn" id="submit-final-btn">Подтвердить</button>
-    <button class="btn" id="back-btn">Назад</button>
-    <div id="final-result" style="margin-top:1rem;"></div>
-  `, () => {
-    document.getElementById("submit-final-btn").onclick = () => {
-      const selected = document.getElementById("final-version-select").value;
-      if (!selected) {
-        alert("Пожалуйста, выберите версию.");
-        return;
-      }
+      document.querySelectorAll("#modal-body .btn[data-restart]").forEach(btn => {
+        btn.onclick = () => {
+          dialogueStates[charId] = "start";
+          node = char.dialogueTree["start"];
+          render();
+        };
+      });
+    });
+  }
 
-      const correct = "maid_anna";
-      const resultDiv = document.getElementById("final-result");
-      if (selected === correct) {
-        resultDiv.innerHTML = `<p style="color:green;"><b>Верно!</b> Горничная Анна была виновна. Поздравляем!</p>`;
-      } else {
-        resultDiv.innerHTML = `<p style="color:red;"><b>Неверно.</b> Это не правильный подозреваемый.</p>`;
-      }
-    };
+  if (dialogueStates[charId]) {
+    nodeId = dialogueStates[charId];
+  }
 
-    document.getElementById("back-btn").onclick = () => {
-      document.body.removeChild(document.querySelector(".modal"));
-    };
-  });
+  node = char.dialogueTree[nodeId];
+  render();
 }
 
-// ========== СОХРАНЕНИЕ ==========
+// ========== УЛИКИ ==========
+function addDiscoveredInfo(text) {
+  if (!discoveredInfo.includes(text)) {
+    discoveredInfo.push(text);
+    saveProgress();
+  }
+}
+
+// ========== СОХРАНЕНИЕ/ЗАГРУЗКА ==========
 function saveProgress() {
   localStorage.setItem("detectiveGameSave", JSON.stringify({
     discoveredInfo,
@@ -574,9 +530,53 @@ function loadProgress() {
 // ========== ПРОВЕРКА УЛИК ==========
 function checkFinalUnlock() {
   if (discoveredInfo.length >= 5) {
-    document.getElementById("final-btn").classList.remove("hidden");
     finalUnlocked = true;
+    document.getElementById("final-btn").classList.remove("hidden");
   }
+}
+
+// ========== ФИНАЛ ==========
+function renderFinal() {
+  if (!finalUnlocked) {
+    alert("Финал откроется после сбора достаточного количества улик.");
+    return;
+  }
+
+  const selectOptions = Object.keys(characters).map(id => {
+    const ch = characters[id];
+    return `<option value="${id}">${ch.name} виновен</option>`;
+  }).join('');
+
+  showModal("Финал", `
+    <p>Выберите версию преступления:</p>
+    <select id="final-version-select" style="width:100%; padding:0.5rem; margin-bottom:1rem;">
+      <option value="">-- Выберите версию --</option>
+      ${selectOptions}
+    </select><br><br>
+    <button class="btn" id="submit-final-btn">Подтвердить</button>
+    <button class="btn" id="back-btn">Назад</button>
+    <div id="final-result" style="margin-top:1rem;"></div>
+  `, () => {
+    document.getElementById("submit-final-btn").onclick = () => {
+      const selected = document.getElementById("final-version-select").value;
+      if (!selected) {
+        alert("Пожалуйста, выберите версию.");
+        return;
+      }
+
+      const correct = "maid_anna";
+      const resultDiv = document.getElementById("final-result");
+      if (selected === correct) {
+        resultDiv.innerHTML = `<p style="color:green;"><b>Верно!</b> Горничная Анна была виновна. Поздравляем!</p>`;
+      } else {
+        resultDiv.innerHTML = `<p style="color:red;"><b>Неверно.</b> Это не правильный подозреваемый.</p>`;
+      }
+    };
+
+    document.getElementById("back-btn").onclick = () => {
+      document.body.removeChild(document.querySelector(".modal"));
+    };
+  });
 }
 
 // ========== ЗАПУСК ИГРЫ ==========
@@ -611,5 +611,4 @@ function renderIntro() {
   };
 }
 
-// ========== ЗАПУСК ==========
 renderMainMenu();
