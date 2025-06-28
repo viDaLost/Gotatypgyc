@@ -2,51 +2,49 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Детективное расследование: Поместье Грейвуд</title>
-  
-  <!-- Подключаем шрифт -->
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet" />
-  
-  <!-- Подключаем стили -->
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div id="app">
-    <header>
-      <h1>Детективное расследование: Поместье Грейвуд</h1>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <!-- Приветственная страница -->
+  <div id="welcomeScreen" class="hidden text-center max-w-md">
+    <h1 class="text-2xl gold-text mb-4">Добро пожаловать в "Поместье Грейвуд"</h1>
+    <p class="mb-6">Вы детектив, прибывший раскрыть тайну убийства Лорда Винтера. Расследуйте локации, общайтесь с персонажами и собирайте улики.</p>
+    <button id="startGameButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition">Начать игру</button>
+  </div>
+
+  <!-- Основной интерфейс игры -->
+  <div id="app" class="hidden w-full max-w-md flex flex-col gap-4">
+    <header class="text-center">
+      <h1 class="text-xl gold-text">Детективное расследование: Поместье Грейвуд</h1>
     </header>
-
-    <main>
-      <section class="content-box">
-        <h2 id="locationTitle"></h2>
-        <p id="locationDescription"></p>
-
-        <ul id="sublocationList"></ul>
+    <main class="flex-grow flex flex-col gap-4">
+      <section class="bg-gray-800 rounded-lg p-4 border border-gray-700 content-box">
+        <h2 id="locationTitle" class="font-bold text-lg gold-text mb-2"></h2>
+        <p id="locationDescription" class="text-sm mb-4"></p>
+        <ul id="sublocationList" class="flex flex-wrap gap-2 list-none"></ul>
       </section>
-
-      <section class="content-box" id="characterInfo">
-        <!-- Здесь будет информация о персонаже и кнопка "Поговорить" -->
-      </section>
+      <section id="characterInfo" class="bg-gray-800 rounded-lg p-4 border border-gray-700 content-box min-h-[140px]"></section>
     </main>
-
-    <footer class="btn-group">
-      <button class="btn" id="notesButton">Заметки</button>
-      <button class="btn" id="infoButton">Информация</button>
-      <button class="btn" id="locationButton">Выбор локации</button>
+    <footer class="flex justify-around gap-4 flex-wrap">
+      <button id="notesButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Заметки</button>
+      <button id="infoButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Информация</button>
+      <button id="locationButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Выбор локации</button>
     </footer>
   </div>
 
   <!-- Модальное окно -->
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <span id="modalClose" class="close-btn">&times;</span>
-      <h3 id="modalTitle"></h3>
+  <div id="modal" class="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 rounded-lg p-6 relative max-w-md w-[90%] max-h-[80vh] overflow-y-auto">
+      <span id="modalClose" class="absolute top-3 right-4 text-xl gold-text cursor-pointer hover:text-white">&times;</span>
+      <h3 id="modalTitle" class="gold-text mb-4"></h3>
       <div id="modalContent"></div>
     </div>
   </div>
 
-  <!-- Подключаем скрипт игры -->
+  <script src=" https://cdn.tailwindcss.com "></script>
   <script src="script.js"></script>
 </body>
 </html>
