@@ -5,10 +5,6 @@ body {
   color: #eee;
 }
 
-.modal {
-  background-color: rgba(0, 0, 0, 0.9);
-}
-
 .gold-text {
   color: #f5c518;
   text-shadow: 0 0 6px #f5c518;
@@ -31,11 +27,15 @@ body {
   display: none;
 }
 
+/* Форма вердикта */
 .verdict-form label {
   display: block;
   margin-bottom: 4px;
+  font-weight: bold;
 }
-.verdict-form select {
+
+.verdict-form select,
+.verdict-form input[type="text"] {
   width: 100%;
   padding: 8px;
   margin-bottom: 12px;
@@ -44,6 +44,7 @@ body {
   border: 2px solid #f5c518;
   border-radius: 6px;
 }
+
 .verdict-form button {
   background-color: #28a745;
   color: white;
@@ -51,8 +52,23 @@ body {
   padding: 10px;
   border-radius: 6px;
   width: 100%;
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
+
 .verdict-form button:hover {
   background-color: #f5c518;
   color: black;
+}
+
+/* Стили для подлокаций */
+#sublocationList li {
+  background-color: #333;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+#sublocationList li:hover {
+  background-color: #444;
 }
