@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const welcomeScreen = document.getElementById("welcomeScreen");
   const app = document.getElementById("app");
 
-  // === Загрузка сохранённого прогресса ===
+  // === Система сохранения ===
   function loadProgress() {
     const savedNotes = localStorage.getItem("notes");
     if (savedNotes) notes = JSON.parse(savedNotes);
@@ -25,13 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("unlockedLocations", JSON.stringify(locations.filter(l => l.unlocked).map(l => l.id)));
   }
 
-  // === Обработчик кнопки "Начать игру" ===
-  document.getElementById("startGameButton").onclick = () => {
-    welcomeScreen.classList.add("hidden");
-    app.classList.remove("hidden");
-    loadProgress();
-    renderLocation();
-  };
+  // === Приветствие при запуске ===
+  if (welcomeScreen && app) {
+    welcomeScreen.classList.remove("hidden");
+    app.classList.add("hidden");
+
+    const startButton = document.getElementById("startGameButton");
+    if (startButton) {
+      startButton.addEventListener("click", () => {
+        welcomeScreen.classList.add("hidden");
+        app.classList.remove("hidden");
+        loadProgress();
+        renderLocation();
+      });
+    }
+  }
 
   // === Персонажи ===
   const characters = {
