@@ -1,172 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* styles.css */
 body {
-  background-color: #121212; 
-  color: #eee;
   font-family: 'Special Elite', monospace;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 1rem;
+  background-color: #121212;
+  color: #eee;
 }
 
-#app {
-  width: 100%;
-  max-width: 480px;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.modal {
+  background-color: rgba(0, 0, 0, 0.9);
 }
 
-header {
-  text-align: center;
-}
-
-header h1 {
-  font-size: 1.5rem;
+.gold-text {
   color: #f5c518;
   text-shadow: 0 0 6px #f5c518;
 }
 
-main {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.gold-border {
+  border-color: #f5c518;
+}
+
+.gold-bg-hover:hover {
+  background-color: #f5c518;
+  color: #121212;
 }
 
 .content-box {
-  background: #222;
-  border-radius: 8px;
-  padding: 1rem;
-  border: 1px solid #333;
   box-shadow: inset 0 0 8px #000;
-  user-select: text;
-}
-
-#locationTitle {
-  margin-bottom: 0.4rem;
-  font-weight: bold;
-  font-size: 1.3rem;
-  color: #f5c518;
-}
-
-#locationDescription {
-  font-size: 1rem;
-  line-height: 1.4;
-  margin-bottom: 0.8rem;
-}
-
-#sublocationList {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-#sublocationList li {
-  flex: 1 1 45%;
-}
-
-.btn {
-  background: #333;
-  color: #f5c518;
-  border: 2px solid #f5c518;
-  padding: 0.6rem 1rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease;
-  margin: 0.2rem 0;
-  width: 100%;
-  text-align: center;
-}
-
-.btn:hover,
-.btn:focus {
-  background: #f5c518;
-  color: #121212;
-  outline: none;
-}
-
-.btn-group {
-  display: flex;
-  justify-content: space-around;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-/* Модальное окно */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
 }
 
 .hidden {
-  display: none !important;
-}
-
-.modal-content {
-  background-color: #222;
-  border-radius: 10px;
-  padding: 1.5rem;
-  position: relative;
-  max-width: 400px;
-  width: 90%;
-  color: #eee;
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.7);
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #f5c518;
-  user-select: none;
-  transition: color 0.3s ease;
-}
-
-.close-btn:hover {
-  color: #fff;
-}
-
-/* Диалоговые опции в модальном окне */
-.dialogue-option {
-  margin-top: 0.6rem;
-  display: block;
-  width: 100%;
-}
-
-/* Секция персонажа */
-#characterInfo {
-  min-height: 140px;
-  font-size: 1rem;
-}
-
-#characterInfo h3 {
-  color: #f5c518;
-  margin-bottom: 0.4rem;
-}
-
-#characterInfo p {
-  margin-bottom: 0.6rem;
+  display: none;
 }
