@@ -30,3 +30,29 @@ body {
 .hidden {
   display: none;
 }
+
+.verdict-form label {
+  display: block;
+  margin-bottom: 4px;
+}
+.verdict-form select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  background-color: #2a2a2a;
+  color: white;
+  border: 2px solid #f5c518;
+  border-radius: 6px;
+}
+.verdict-form button {
+  background-color: #28a745;
+  color: white;
+  border: 2px solid #f5c518;
+  padding: 10px;
+  border-radius: 6px;
+  width: 100%;
+}
+.verdict-form button:hover {
+  background-color: #f5c518;
+  color: black;
+}
