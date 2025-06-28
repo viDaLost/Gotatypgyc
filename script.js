@@ -6,10 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function loadProgress() {
     const savedNotes = localStorage.getItem("notes");
     if (savedNotes) notes = JSON.parse(savedNotes);
-
     const savedFacts = localStorage.getItem("facts");
     if (savedFacts) facts = new Set(JSON.parse(savedFacts));
-
     const savedUnlocked = localStorage.getItem("unlockedLocations");
     if (savedUnlocked) {
       const unlockedIds = JSON.parse(savedUnlocked);
@@ -23,22 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("notes", JSON.stringify(notes));
     localStorage.setItem("facts", JSON.stringify(Array.from(facts)));
     localStorage.setItem("unlockedLocations", JSON.stringify(locations.filter(l => l.unlocked).map(l => l.id)));
-  }
-
-  // === Приветствие при запуске ===
-  if (welcomeScreen && app) {
-    welcomeScreen.classList.remove("hidden");
-    app.classList.add("hidden");
-
-    const startButton = document.getElementById("startGameButton");
-    if (startButton) {
-      startButton.addEventListener("click", () => {
-        welcomeScreen.classList.add("hidden");
-        app.classList.remove("hidden");
-        loadProgress();
-        renderLocation();
-      });
-    }
   }
 
   // === Персонажи ===
@@ -440,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sublocations: [
         { id: "bench", description: "На скамье валяется перчатка.", infoType: "useful", isOpen: true },
         { id: "shed", description: "Сарай заперт, но ключ может быть где-то рядом.", infoType: "distraction", isOpen: false }
-      },
+      ],
       characters: ["gardener_tom"],
       unlocked: true
     },
@@ -451,7 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sublocations: [
         { id: "plants", description: "Цветы выглядят необычно — будто их трогали.", infoType: "useful", isOpen: true },
         { id: "bench_greenhouse", description: "На скамье лежит старый блокнот.", infoType: "useful", isOpen: true }
-      },
+      ],
       characters: ["gardener_tom"],
       unlocked: true
     },
@@ -462,7 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sublocations: [
         { id: "boxes", description: "В ящиках валяются старые вещи.", infoType: "useful", isOpen: true },
         { id: "key", description: "На стене висит ключ.", infoType: "useful", isOpen: true }
-      },
+      ],
       characters: ["servant_george"],
       unlocked: true
     },
@@ -528,12 +510,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function checkUnlockConditions() {
     const hasVisitedLibraryAndKitchen = facts.has("старинные книги") && facts.has("горячая плита");
     const foundKeyInBasement = facts.has("ключ от погреба");
-
     if (hasVisitedLibraryAndKitchen && !locations.find(l => l.id === "attic").unlocked) {
       locations.find(l => l.id === "attic").unlocked = true;
       alert("Открыт новый уровень: Чёрдак");
     }
-
     if (foundKeyInBasement && !locations.find(l => l.id === "cellar").unlocked) {
       locations.find(l => l.id === "cellar").unlocked = true;
       alert("Открыт новый уровень: Погреб");
@@ -543,11 +523,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Рендер текущей локации ===
   function renderLocation() {
     checkUnlockConditions();
-
     const loc = locations[currentLocationIndex];
     document.getElementById("locationTitle").textContent = loc.title;
     document.getElementById("locationDescription").textContent = loc.description;
-
     const ul = document.getElementById("sublocationList");
     ul.innerHTML = "";
     loc.sublocations.forEach(sub => {
@@ -559,7 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Это место закрыто.");
           return;
         }
-        facts.add(sub.facts[0]);
+        facts.add(sub.facts ? sub.facts[0] : sub.description);
         saveProgress();
         alert(`${sub.description} | Информация: ${sub.infoType}`);
       };
@@ -583,7 +561,6 @@ document.addEventListener("DOMContentLoaded", () => {
     currentDialogCharacter = charId;
     currentDialogNode = characters[charId].dialogueTree.start;
     showDialog();
-
     // Открытие локаций после диалога
     if (charId === "butler_james") {
       unlockLocationById("secret_room");
@@ -596,12 +573,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modalTitle").textContent = characters[currentDialogCharacter].name;
     const contentDiv = document.getElementById("modalContent");
     contentDiv.innerHTML = "";
-
     const p = document.createElement("p");
     p.className = "mb-4";
     p.textContent = currentDialogNode.text;
     contentDiv.appendChild(p);
-
     currentDialogNode.options.forEach(opt => {
       const btn = document.createElement("button");
       btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full mb-2";
@@ -616,7 +591,6 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       contentDiv.appendChild(btn);
     });
-
     if (currentDialogNode.options.length === 0) {
       const btn = document.createElement("button");
       btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full";
@@ -696,7 +670,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const time = document.getElementById("verdict-time").value;
       const weapon = document.getElementById("verdict-weapon").value;
       const motive = document.getElementById("verdict-motive").value;
-
       if (
         suspect.includes("Винтер") &&
         time === "ночь" &&
@@ -739,12 +712,16 @@ document.addEventListener("DOMContentLoaded", () => {
         delBtn.className = "bg-gray-700 gold-text border-2 gold-border px-2 py-1 rounded-lg ml-2";
         delBtn.textContent = "Удалить";
         delBtn.dataset.index = i;
+        delBtn.onclick = () => {
+          notes.splice(i, 1);
+          saveProgress();
+          openNotes();
+        };
         li.appendChild(delBtn);
         ul.appendChild(li);
       });
       contentDiv.appendChild(ul);
     }
-
     const div = document.createElement("div");
     div.className = "flex mt-4";
     const input = document.createElement("input");
@@ -786,11 +763,25 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("locationButton").onclick = openLocationSelector;
   document.getElementById("verdictButton").onclick = showVerdictForm;
   document.getElementById("modalClose").onclick = closeModal;
-
   window.onclick = e => {
     const modal = document.getElementById("modal");
     if (e.target === modal) closeModal();
   };
+
+  // === Приветствие при запуске ===
+  if (welcomeScreen && app) {
+    welcomeScreen.classList.remove("hidden");
+    app.classList.add("hidden");
+    const startButton = document.getElementById("startGameButton");
+    if (startButton) {
+      startButton.addEventListener("click", () => {
+        welcomeScreen.classList.add("hidden");
+        app.classList.remove("hidden");
+        loadProgress();
+        renderLocation();
+      });
+    }
+  }
 
   renderLocation();
 });
