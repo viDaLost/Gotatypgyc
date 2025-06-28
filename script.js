@@ -339,16 +339,30 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Локации ===
   const locations = [
     {
+      id: "hall",
+      title: "Главный зал",
+      description: "Огромный зал с высоким потолком и роскошной люстрой. Здесь царит величие поместья. В зале находится дворецкий Джеймс. Тело Лорда Винтера было найдено здесь.",
+      sublocations: [
+        { id: "portrait", title: "Портрет", description: "На портрете Лорд Винтер смотрит на вас с ухмылкой." },
+        { id: "fireplace", title: "Камин", description: "В камине догорают угли. На полу следы крови." },
+        { id: "mirror", title: "Зеркало", description: "На раме зеркала видны царапины, будто кто-то пытался что-то стереть." },
+        { id: "table", title: "Столик", description: "На столике валяется старый конверт." },
+        { id: "rug", title: "Ковёр", description: "Ковёр частично задран, под ним виднеется деревянный люк." }
+      ],
+      characters: ["butler_james"],
+      unlocked: true
+    },
+    {
       id: "library",
       title: "Библиотека",
-      description: "Просторная библиотека, заполненная старинными томами. Здесь пахнет кожей и древесиной. На фоне этой атмосферы можно услышать потрескивание огня в камине. В библиотеке находится библиотекарь Эмили.",
+      description: "Просторная библиотека, заполненная старинными томами. Здесь пахнет кожей и древесиной. В библиотеке находится библиотекарь Эмили.",
       sublocations: [
-        { id: "desk", title: "Письменный стол", description: "На столе лежит исписанный лист бумаги: 'Я знаю правду'.", infoType: "useful" },
-        { id: "shelves", title: "Книжные полки", description: "На одной из полок спрятана записка: 'Он знал слишком много...' — возможно, это часть какой-то переписки.", infoType: "useful" },
-        { id: "filing_cabinet", title: "Картотека", description: "В ящике найдены документы о продаже земель поместья. Возможно, Лорд готовил крупную сделку.", infoType: "useful" },
-        { id: "cabinet", title: "Шкаф", description: "В шкафу лежит красивое платье — не относится к делу.", infoType: "distraction" },
-        { id: "sofa", title: "За диваном", description: "Под диваном валяется платок с вышитыми инициалами 'А'.", infoType: "useful" },
-        { id: "window", title: "Окно", description: "На подоконнике следы грязи, будто кто-то недавно пролез внутрь.", infoType: "useful" }
+        { id: "desk", title: "Письменный стол", description: "На столе лежит исписанный лист бумаги: 'Я знаю правду'." },
+        { id: "shelves", title: "Книжные полки", description: "На одной из полок спрятана записка: 'Он знал слишком много...' — возможно, это часть какой-то переписки." },
+        { id: "filing_cabinet", title: "Картотека", description: "В ящике найдены документы о продаже земель поместья. Возможно, Лорд готовил крупную сделку." },
+        { id: "cabinet", title: "Шкаф", description: "В шкафу лежит красивое платье — не относится к делу." },
+        { id: "sofa", title: "За диваном", description: "Под диваном валяется платок с вышитыми инициалами 'А'." },
+        { id: "window", title: "Окно", description: "На подоконнике следы грязи, будто кто-то недавно пролез внутрь." }
       ],
       characters: ["librarian_emily"],
       unlocked: true
@@ -358,28 +372,14 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Кухня",
       description: "Тёплая и уютная кухня, наполненная ароматами выпечки. Здесь всегда можно найти что-то вкусное, но сегодня она кажется особенно пустой. На кухне находятся повар Мария и горничная Анна.",
       sublocations: [
-        { id: "stove", title: "Плита", description: "Плита ещё горячая — кто-то недавно готовил.", infoType: "useful" },
-        { id: "pantry", title: "Кладовая", description: "Закрыта на ключ. Возможно, там что-то скрывается.", infoType: "distraction" },
-        { id: "table_kitchen", title: "Стол", description: "На столе разбросаны ножи, один из них выглядит странным.", infoType: "useful" },
-        { id: "sink", title: "Раковина", description: "В воде плавает странный комочек бумаги.", infoType: "useful" },
-        { id: "oven", title: "Духовка", description: "Что-то завёрнуто в тряпку — возможно, это важно.", infoType: "useful" },
-        { id: "cupboard", title: "Шкафчики", description: "В одном из шкафчиков стоит банка с надписью 'Не есть!'", infoType: "distraction" }
+        { id: "stove", title: "Плита", description: "Плита ещё горячая — кто-то недавно готовил." },
+        { id: "pantry", title: "Кладовая", description: "Закрыта на ключ. Возможно, там что-то скрывается." },
+        { id: "table_kitchen", title: "Стол", description: "На столе разбросаны ножи, один из них выглядит странным." },
+        { id: "sink", title: "Раковина", description: "В воде плавает странный комочек бумаги." },
+        { id: "oven", title: "Духовка", description: "Что-то завёрнуто в тряпку — возможно, это важно." },
+        { id: "cupboard", title: "Шкафчики", description: "В одном из шкафчиков стоит банка с надписью 'Не есть!'." }
       ],
       characters: ["maid_anna", "cook_mary"],
-      unlocked: true
-    },
-    {
-      id: "hall",
-      title: "Главный зал",
-      description: "Огромный зал с высоким потолком и роскошной люстрой. Здесь царит величие поместья. В зале находится дворецкий Джеймс. Тело Лорда Винтера было найдено здесь.",
-      sublocations: [
-        { id: "portrait", title: "Портрет", description: "На портрете Лорд Винтер смотрит на вас с ухмылкой.", infoType: "neutral" },
-        { id: "fireplace", title: "Камин", description: "В камине догорают угли. На полу следы крови.", infoType: "useful" },
-        { id: "mirror", title: "Зеркало", description: "На раме зеркала видны царапины, будто кто-то пытался что-то стереть.", infoType: "useful" },
-        { id: "table", title: "Столик", description: "На столике валяется старый конверт.", infoType: "useful" },
-        { id: "rug", title: "Ковёр", description: "Ковёр частично задран, под ним виднеется деревянный люк.", infoType: "useful" }
-      ],
-      characters: ["butler_james"],
       unlocked: true
     },
     {
@@ -387,11 +387,11 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Сад",
       description: "Тенистый сад с аккуратно подстриженными кустами и цветниками. Здесь легко забыть обо всём плохом. В саду находится садовник Том.",
       sublocations: [
-        { id: "bench", title: "Скамья", description: "На скамье валяется перчатка.", infoType: "useful" },
-        { id: "shed", title: "Сарай", description: "Сарай заперт, но ключ может быть где-то рядом. Внутри — банка с химикатами.", infoType: "useful" },
-        { id: "flowerbeds", title: "Цветники", description: "Некоторые цветы вырваны с корнем.", infoType: "useful" },
-        { id: "statue", title: "Статуя", description: "Статуя покрыта пятнами, похожими на кровь.", infoType: "useful" },
-        { id: "gate", title: "Ворота", description: "Ворота были взломаны. Следы ведут внутрь.", infoType: "useful" }
+        { id: "bench", title: "Скамья", description: "На скамье валяется перчатка." },
+        { id: "shed", title: "Сарай", description: "Сарай заперт, но ключ может быть где-то рядом. Внутри — банка с химикатами." },
+        { id: "flowerbeds", title: "Цветники", description: "Некоторые цветы вырваны с корнем." },
+        { id: "statue", title: "Статуя", description: "Статуя покрыта пятнами, похожими на кровь." },
+        { id: "gate", title: "Ворота", description: "Ворота были взломаны. Следы ведут внутрь." }
       ],
       characters: ["gardener_tom"],
       unlocked: true
@@ -401,8 +401,8 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Комната горничной",
       description: "Маленькая, уютная комната с кроватью и шкафом. В воздухе стоит запах старых вещей.",
       sublocations: [
-        { id: "bed", title: "Под кроватью", description: "Под подушкой лежит письмо от матери Анны: 'Он тебя не признал... но ты его дочь'.", infoType: "useful" },
-        { id: "wardrobe", title: "Шкаф", description: "В шкафу лежит красивое платье. Ничего подозрительного.", infoType: "distraction" }
+        { id: "bed", title: "Под кроватью", description: "Под подушкой лежит письмо от матери Анны: 'Он тебя не признал... но ты его дочь'." },
+        { id: "wardrobe", title: "Шкаф", description: "В шкафу лежит красивое платье. Ничего подозрительного." }
       ],
       characters: ["maid_anna"],
       unlocked: true
@@ -412,7 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Тайная комната",
       description: "Спрятанная за книжной полкой комната с документами. Здесь можно узнать много нового.",
       sublocations: [
-        { id: "documents", title: "Документы", description: "На столе лежит старый документ: 'Ребёнок вне брака, рожденный в 1895 году'.", infoType: "useful" }
+        { id: "documents", title: "Документы", description: "На столе лежит старый документ: 'Ребёнок вне брака, рождённый в 1895 году'." }
       ],
       characters: ["butler_james"],
       unlocked: false,
@@ -474,15 +474,12 @@ document.addEventListener("DOMContentLoaded", () => {
     modalTitle.textContent = sub.title;
     modalContent.innerHTML = `
       <p>${sub.description}</p>
-      <p class="text-xs mt-2 italic">${sub.infoType === "useful" ? "Полезная информация" : sub.infoType === "distraction" ? "Отвлекающий фактор" : "Нейтральная информация"}</p>
       <button class="mt-4 bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded w-full">Закрыть</button>
     `;
 
     modalContent.querySelector("button").onclick = () => {
-      if (sub.infoType !== "distraction") {
-        facts.add(sub.description);
-        saveProgress();
-      }
+      facts.add(sub.description);
+      saveProgress();
       closeModal();
     };
   }
@@ -510,7 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     currentDialogNode.options?.forEach(opt => {
       const btn = document.createElement("button");
-      btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded hover:bg-gray-600 w-full mb-2";
+      btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded w-full mb-2";
       btn.textContent = opt.text;
       btn.onclick = () => {
         if (opt.next === "end") {
@@ -546,7 +543,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Функции для кнопок ===
-
   function openNotes() {
     const modal = document.getElementById("modal");
     const modalTitle = document.getElementById("modalTitle");
@@ -709,12 +705,13 @@ document.addEventListener("DOMContentLoaded", () => {
         welcomeScreen.classList.add("hidden");
         app.classList.remove("hidden");
         loadProgress();
+        currentLocationIndex = 0; // Устанавливаем первую локацию как "Главный зал"
         renderLocation();
       });
     }
   }
 
-  // === Обработчики событий для всех кнопок ===
+  // === Обработчики событий для кнопок ===
   document.getElementById("notesButton")?.addEventListener("click", openNotes);
   document.getElementById("infoButton")?.addEventListener("click", openInfo);
   document.getElementById("locationButton")?.addEventListener("click", openLocationSelector);
@@ -724,7 +721,4 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("modal");
     if (e.target === modal) closeModal();
   });
-
-  // === Рендер первой локации ===
-  renderLocation();
 });
