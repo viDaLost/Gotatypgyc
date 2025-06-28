@@ -4,15 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Детективное расследование: Поместье Грейвуд</title>
-  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com "></script>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4 bg-gray-900">
   <!-- Приветственная страница -->
-  <div id="welcomeScreen" class="hidden text-center max-w-md">
-    <h1 class="text-2xl gold-text mb-4">Добро пожаловать в "Поместье Грейвуд"</h1>
-    <p class="mb-6">Вы детектив, прибывший раскрыть тайну убийства Лорда Винтера. Расследуйте локации, общайтесь с персонажами и собирайте улики.</p>
-    <button id="startGameButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition">Начать игру</button>
+  <div id="welcomeScreen" class="text-center max-w-md mx-auto">
+    <h1 class="text-3xl gold-text mb-4">Добро пожаловать в "Поместье Грейвуд"</h1>
+    <p class="mb-6 text-sm">Вы детектив, прибывший раскрыть тайну убийства Лорда Винтера. Расследуйте локации, общайтесь с персонажами и собирайте улики.</p>
+    <button id="startGameButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Начать игру</button>
   </div>
 
   <!-- Основной интерфейс игры -->
@@ -35,7 +36,7 @@
     </footer>
   </div>
 
-  <!-- Модальное окно -->
+  <!-- Модальное окно выбора локации -->
   <div id="modal" class="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50 hidden">
     <div class="bg-gray-800 rounded-lg p-6 relative max-w-md w-[90%] max-h-[80vh] overflow-y-auto">
       <span id="modalClose" class="absolute top-3 right-4 text-xl gold-text cursor-pointer hover:text-white">&times;</span>
@@ -44,7 +45,6 @@
     </div>
   </div>
 
-  <script src=" https://cdn.tailwindcss.com "></script>
   <script src="script.js"></script>
 </body>
 </html>
