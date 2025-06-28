@@ -1,11 +1,13 @@
-// script.js
-
 document.addEventListener("DOMContentLoaded", () => {
   const welcomeScreen = document.getElementById("welcomeScreen");
   const app = document.getElementById("app");
-  const startGameButton = document.getElementById("startGameButton");
 
-  startGameButton.onclick = () => {
+  // Показываем приветствие при загрузке
+  welcomeScreen.classList.remove("hidden");
+  app.classList.add("hidden");
+
+  // Обработчик кнопки "Начать игру"
+  document.getElementById("startGameButton").onclick = () => {
     welcomeScreen.classList.add("hidden");
     app.classList.remove("hidden");
     renderLocation();
@@ -105,6 +107,98 @@ document.addEventListener("DOMContentLoaded", () => {
           options: []
         }
       }
+    },
+    "cook_mary": {
+      name: "Повар Мария",
+      description: "Добродушная женщина с крепкими связями в округе.",
+      motive: "Могла иметь секретные связи с местным контрабандистом.",
+      dialogueTree: {
+        start: {
+          text: "Добрый день, детектив.",
+          options: [
+            { text: "Вы заметили что-нибудь странное?", next: "strange" },
+            { text: "Кто убил Лорда?", next: "killer" },
+            { text: "Как вы себя чувствуете?", next: "feelings" }
+          ]
+        },
+        strange: {
+          text: "Ночью кто-то заглядывал в кладовку.",
+          options: [
+            { text: "Кто?", next: "who" }
+          ]
+        },
+        who: {
+          text: "Не знаю... но слышала шаги.",
+          options: [
+            { text: "Хорошо", next: "end" }
+          ]
+        },
+        killer: {
+          text: "Не могу знать этого. Я просто повар.",
+          options: [
+            { text: "Хорошо", next: "end" }
+          ]
+        },
+        feelings: {
+          text: "Страшно... но я должна работать.",
+          options: [
+            { text: "Хорошо", next: "end" }
+          ]
+        },
+        end: {
+          text: "Если будет нужно — я помогу.",
+          options: []
+        }
+      }
+    },
+    "butler_james": {
+      name: "Дворецкий Джеймс",
+      description: "Верный слуга с таинственным прошлым.",
+      motive: "Хотел защитить семью от посторонних.",
+      dialogueTree: {
+        start: {
+          text: "Вы хотели со мной поговорить?",
+          options: [
+            { text: "Что вы делали в ночь убийства?", next: "night" },
+            { text: "Вы знаете что-нибудь важное?", next: "important" },
+            { text: "Как вы относитесь к Лорду?", next: "relation" }
+          ]
+        },
+        night: {
+          text: "Я осматривал окрестности. Ничего необычного не видел.",
+          options: [
+            { text: "А кто-нибудь входил?", next: "entered" }
+          ]
+        },
+        entered: {
+          text: "Не уверен... но кто-то был.",
+          options: [
+            { text: "Хорошо", next: "end" }
+          ]
+        },
+        important: {
+          text: "Да, но не уверен, стоит ли говорить об этом сейчас.",
+          options: [
+            { text: "Прошу вас", next: "please" }
+          ]
+        },
+        please: {
+          text: "Я нашёл старую записку в библиотеке... она может вам помочь.",
+          options: [
+            { text: "Хорошо", next: "end" }
+          ]
+        },
+        relation: {
+          text: "Я служу этой семье много лет.",
+          options: [
+            { text: "Спасибо", next: "end" }
+          ]
+        },
+        end: {
+          text: "Если нужно — я здесь.",
+          options: []
+        }
+      }
     }
   };
 
@@ -127,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
           isOpen: false
         }
       ],
-      characters: ["lord_winter"]
+      characters: ["lord_winter", "butler_james"]
     },
     {
       id: "kitchen",
@@ -147,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
           isOpen: true
         }
       ],
-      characters: ["maid_anna"]
+      characters: ["maid_anna", "cook_mary"]
     }
   ];
 
@@ -158,7 +252,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let notes = JSON.parse(localStorage.getItem("notes")) || [];
   let facts = new Set();
 
-  // ===== Функции =====
   function saveNotes() {
     localStorage.setItem("notes", JSON.stringify(notes));
   }
@@ -289,17 +382,6 @@ document.addEventListener("DOMContentLoaded", () => {
     contentDiv.appendChild(div);
   }
 
-  document.getElementById("modalContent").addEventListener("click", (e) => {
-    if (e.target.tagName === "BUTTON" && e.target.textContent === "Удалить") {
-      const idx = e.target.dataset.index;
-      if (idx !== undefined) {
-        notes.splice(idx, 1);
-        saveNotes();
-        openNotes();
-      }
-    }
-  });
-
   function openInfo() {
     const modal = document.getElementById("modal");
     modal.classList.remove("hidden");
@@ -312,21 +394,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function nextLocation() {
-    currentLocationIndex = (currentLocationIndex + 1) % locations.length;
-    facts.clear();
-    renderLocation();
+  function openLocationSelector() {
+    const modal = document.getElementById("modal");
+    modal.classList.remove("hidden");
+    document.getElementById("modalTitle").textContent = "Выбор локации";
+    const contentDiv = document.getElementById("modalContent");
+    contentDiv.innerHTML = "";
+
+    locations.forEach((loc, index) => {
+      const btn = document.createElement("button");
+      btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full mb-2";
+      btn.textContent = loc.title;
+      btn.onclick = () => {
+        currentLocationIndex = index;
+        facts.clear();
+        renderLocation();
+        closeModal();
+      };
+      contentDiv.appendChild(btn);
+    });
   }
 
-  document.getElementById("notesButton").onclick = openNotes;
-  document.getElementById("infoButton").onclick = openInfo;
-  document.getElementById("locationButton").onclick = nextLocation;
-  document.getElementById("modalClose").onclick = closeModal;
-
-  window.onclick = function(event) {
+  function closeModalOnClickOutside(event) {
     const modal = document.getElementById("modal");
     if (event.target === modal) {
       closeModal();
     }
   }
+
+  // ===== Обработчики событий =====
+  document.getElementById("notesButton").onclick = openNotes;
+  document.getElementById("infoButton").onclick = openInfo;
+  document.getElementById("locationButton").onclick = openLocationSelector;
+  document.getElementById("modalClose").onclick = closeModal;
+  window.onclick = closeModalOnClickOutside;
+
+  // Делегирование удаления заметок
+  document.getElementById("modalContent").addEventListener("click", (e) => {
+    if (e.target.tagName === "BUTTON" && e.target.textContent === "Удалить") {
+      const idx = e.target.dataset.index;
+      if (idx !== undefined) {
+        notes.splice(idx, 1);
+        saveNotes();
+        openNotes();
+      }
+    }
+  });
 });
