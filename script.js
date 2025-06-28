@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ]
         },
         know_lord: {
-          text: "Он часто прятал документы между страницами. Однажды я нашла интересную запись о ребёнке, рождённом вне брака.",
+          text: "Он часто прятал документы между страницами.",
           options: [
             { text: "Интересно", next: "end" }
           ]
@@ -222,48 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         end: {
           text: "Если понадобится помощь — я рядом.",
-          options: []
-        }
-      }
-    },
-    "servant_george": {
-      name: "Слуга Джордж",
-      description: "Работает в поместье с юности.",
-      motive: "Знал о планах Лорда Винтера.",
-      dialogueTree: {
-        start: {
-          text: "Вы ищете убийцу?",
-          options: [
-            { text: "Вы видели что-нибудь?", next: "saw" },
-            { text: "Кто был недоволен Лордом?", next: "angry" }
-          ]
-        },
-        saw: {
-          text: "Кто-то выходил из сарая около полуночи.",
-          options: [
-            { text: "Кто?", next: "who" }
-          ]
-        },
-        who: {
-          text: "Похоже, это была Анна. Но я не уверен.",
-          options: [
-            { text: "Хорошо", next: "end" }
-          ]
-        },
-        angry: {
-          text: "Многие. Особенно те, кто знал правду.",
-          options: [
-            { text: "Правду о чём?", next: "truth" }
-          ]
-        },
-        truth: {
-          text: "О финансовых махинациях и о прошлом... некоторых людях он бросил без помощи.",
-          options: [
-            { text: "Хорошо", next: "end" }
-          ]
-        },
-        end: {
-          text: "Если нужно — я рядом.",
           options: []
         }
       }
@@ -333,10 +291,52 @@ document.addEventListener("DOMContentLoaded", () => {
           options: []
         }
       }
+    },
+    "servant_george": {
+      name: "Слуга Джордж",
+      description: "Работает в поместье с юности.",
+      motive: "Знал о планах Лорда Винтера.",
+      dialogueTree: {
+        start: {
+          text: "Вы ищете убийцу?",
+          options: [
+            { text: "Вы видели что-нибудь?", next: "saw" },
+            { text: "Кто был недоволен Лордом?", next: "angry" }
+          ]
+        },
+        saw: {
+          text: "Кто-то выходил из сарая около полуночи.",
+          options: [
+            { text: "Кто?", next: "who" }
+          ]
+        },
+        who: {
+          text: "Похоже, это была Анна. Но я не уверен.",
+          options: [
+            { text: "Хорошо", next: "end" }
+          ]
+        },
+        angry: {
+          text: "Многие. Особенно те, кто знал правду.",
+          options: [
+            { text: "Правду о чём?", next: "truth" }
+          ]
+        },
+        truth: {
+          text: "О финансовых махинациях и о прошлом... некоторых людях он бросил без помощи.",
+          options: [
+            { text: "Хорошо", next: "end" }
+          ]
+        },
+        end: {
+          text: "Если нужно — я рядом.",
+          options: []
+        }
+      }
     }
   };
 
-  // === Локации с подробными описаниями и подлокациями ===
+  // === Локации ===
   const locations = [
     {
       id: "library",
@@ -363,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { id: "table_kitchen", title: "Стол", description: "На столе разбросаны ножи, один из них выглядит странным.", infoType: "useful" },
         { id: "sink", title: "Раковина", description: "В воде плавает странный комочек бумаги.", infoType: "useful" },
         { id: "oven", title: "Духовка", description: "Что-то завёрнуто в тряпку — возможно, это важно.", infoType: "useful" },
-        { id: "cupboard", title: "Шкафчики", description: "В одном из шкафчиков стоит банка с надписью 'Не есть!'", infoType: "useful" }
+        { id: "cupboard", title: "Шкафчики", description: "В одном из шкафчиков стоит банка с надписью 'Не есть!'", infoType: "distraction" }
       ],
       characters: ["maid_anna", "cook_mary"],
       unlocked: true
@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ul.innerHTML = "";
     loc.sublocations.forEach(sub => {
       const li = document.createElement("li");
-      li.className = "flex-1 basis-[45%] cursor-pointer";
+      li.className = "flex-1 basis-[45%] cursor-pointer bg-gray-700 p-2 rounded hover:bg-gray-600";
       li.textContent = sub.title;
       li.onclick = () => showSublocationDetails(sub);
       ul.appendChild(li);
@@ -457,7 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loc.characters.forEach(charId => {
       const c = characters[charId];
       const btn = document.createElement("button");
-      btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded hover:gold-bg-hover transition w-full mb-2";
+      btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded w-full mb-2";
       btn.textContent = c.name;
       btn.onclick = () => startDialog(charId);
       charDiv.appendChild(btn);
@@ -508,7 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
     p.textContent = currentDialogNode.text;
     contentDiv.appendChild(p);
 
-    currentDialogNode.options.forEach(opt => {
+    currentDialogNode.options?.forEach(opt => {
       const btn = document.createElement("button");
       btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded hover:bg-gray-600 w-full mb-2";
       btn.textContent = opt.text;
@@ -545,23 +545,100 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modal").classList.add("hidden");
   }
 
-  // === Приветствие при запуске ===
-  if (welcomeScreen && app) {
-    welcomeScreen.classList.remove("hidden");
-    app.classList.add("hidden");
+  // === Функции для кнопок ===
 
-    const startButton = document.getElementById("startGameButton");
-    if (startButton) {
-      startButton.addEventListener("click", () => {
-        welcomeScreen.classList.add("hidden");
-        app.classList.remove("hidden");
-        loadProgress();
-        renderLocation();
+  function openNotes() {
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalContent = document.getElementById("modalContent");
+
+    modal.classList.remove("hidden");
+    modalTitle.textContent = "Заметки";
+    modalContent.innerHTML = "";
+    if (notes.length === 0) {
+      modalContent.innerHTML = "<p>Заметок пока нет.</p>";
+    } else {
+      const ul = document.createElement("ul");
+      notes.forEach((note, i) => {
+        const li = document.createElement("li");
+        li.className = "mb-2 flex items-center justify-between";
+        li.textContent = note;
+        const delBtn = document.createElement("button");
+        delBtn.className = "bg-red-600 text-white px-2 py-1 rounded ml-2 text-sm";
+        delBtn.textContent = "Удалить";
+        delBtn.onclick = () => {
+          notes.splice(i, 1);
+          saveProgress();
+          openNotes();
+        };
+        li.appendChild(delBtn);
+        ul.appendChild(li);
       });
+      modalContent.appendChild(ul);
+    }
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Новая заметка";
+    input.className = "w-full bg-gray-700 text-white px-3 py-2 rounded mt-4";
+    modalContent.appendChild(input);
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "mt-2 bg-green-600 text-white px-4 py-2 rounded w-full";
+    addBtn.textContent = "Добавить заметку";
+    addBtn.onclick = () => {
+      const val = input.value.trim();
+      if (val) {
+        notes.push(val);
+        saveProgress();
+        openNotes();
+      }
+    };
+    modalContent.appendChild(addBtn);
+  }
+
+  function openInfo() {
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalContent = document.getElementById("modalContent");
+
+    modal.classList.remove("hidden");
+    modalTitle.textContent = "Информация";
+    modalContent.innerHTML = "";
+    if (facts.size === 0) {
+      modalContent.innerHTML = "<p>Информации пока нет.</p>";
+    } else {
+      const ul = document.createElement("ul");
+      Array.from(facts).forEach(f => {
+        const li = document.createElement("li");
+        li.textContent = f;
+        ul.appendChild(li);
+      });
+      modalContent.appendChild(ul);
     }
   }
 
-  // === Вердикт ===
+  function openLocationSelector() {
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalContent = document.getElementById("modalContent");
+
+    modal.classList.remove("hidden");
+    modalTitle.textContent = "Выбор локации";
+    modalContent.innerHTML = "";
+    locations.filter(l => l.unlocked).forEach(loc => {
+      const btn = document.createElement("button");
+      btn.className = "bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded w-full mb-2";
+      btn.textContent = loc.title;
+      btn.onclick = () => {
+        currentLocationIndex = locations.indexOf(loc);
+        renderLocation();
+        closeModal();
+      };
+      modalContent.appendChild(btn);
+    });
+  }
+
   function showVerdictForm() {
     const modal = document.getElementById("modal");
     const modalTitle = document.getElementById("modalTitle");
@@ -621,18 +698,32 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // === Другие функции: openNotes(), openInfo(), openLocationSelector() — остались без изменений
+  // === Приветствие при запуске ===
+  if (welcomeScreen && app) {
+    welcomeScreen.classList.remove("hidden");
+    app.classList.add("hidden");
 
-  // === Обработчики событий ===
-  document.getElementById("notesButton").onclick = openNotes;
-  document.getElementById("infoButton").onclick = openInfo;
-  document.getElementById("locationButton").onclick = openLocationSelector;
-  document.getElementById("verdictButton").onclick = showVerdictForm;
-  document.getElementById("modalClose").onclick = closeModal;
-  window.onclick = e => {
+    const startButton = document.getElementById("startGameButton");
+    if (startButton) {
+      startButton.addEventListener("click", () => {
+        welcomeScreen.classList.add("hidden");
+        app.classList.remove("hidden");
+        loadProgress();
+        renderLocation();
+      });
+    }
+  }
+
+  // === Обработчики событий для всех кнопок ===
+  document.getElementById("notesButton")?.addEventListener("click", openNotes);
+  document.getElementById("infoButton")?.addEventListener("click", openInfo);
+  document.getElementById("locationButton")?.addEventListener("click", openLocationSelector);
+  document.getElementById("verdictButton")?.addEventListener("click", showVerdictForm);
+  document.getElementById("modalClose")?.addEventListener("click", closeModal);
+  window.addEventListener("click", e => {
     const modal = document.getElementById("modal");
     if (e.target === modal) closeModal();
-  };
+  });
 
   // === Рендер первой локации ===
   renderLocation();
