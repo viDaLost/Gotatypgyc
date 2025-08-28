@@ -4,16 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Детективное расследование: Поместье Грейвуд</title>
-  <script src="https://cdn.tailwindcss.com "></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 bg-gray-900">
   <!-- Приветственная страница -->
   <div id="welcomeScreen" class="text-center max-w-md mx-auto">
-    <h1 class="text-3xl gold-text mb-4">Добро пожаловать в "Поместье Грейвуд"</h1>
-    <p class="mb-6 text-sm">Вы детектив, прибывший раскрыть тайну убийства Лорда Винтера. Расследуйте локации, общайтесь с персонажами и собирайте улики.</p>
-    <button id="startGameButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Начать игру</button>
+    <h1 class="text-3xl gold-text mb-4">Добро пожаловать в «Поместье Грейвуд»</h1>
+    <p class="mb-6 text-sm opacity-90">
+      Вы — детектив. Исследуйте локации, общайтесь с персонажами, собирайте улики и делайте выводы.
+    </p>
+    <button id="startGameButton" class="btn-main w-full sm:w-auto">Начать игру</button>
   </div>
 
   <!-- Основной интерфейс игры -->
@@ -21,30 +23,72 @@
     <header class="text-center">
       <h1 class="text-xl gold-text">Детективное расследование: Поместье Грейвуд</h1>
     </header>
+
     <main class="flex-grow flex flex-col gap-4">
-      <section class="bg-gray-800 rounded-lg p-4 border border-gray-700 content-box">
+      <section class="panel content-box">
         <h2 id="locationTitle" class="font-bold text-lg gold-text mb-2"></h2>
         <p id="locationDescription" class="text-sm mb-4"></p>
         <ul id="sublocationList" class="flex flex-wrap gap-2 list-none"></ul>
       </section>
-      <section id="characterInfo" class="bg-gray-800 rounded-lg p-4 border border-gray-700 content-box min-h-[140px]"></section>
+
+      <section id="characterInfo" class="panel content-box min-h-[140px]"></section>
     </main>
-    <footer class="flex justify-around gap-4 flex-wrap">
-      <button id="notesButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Заметки</button>
-      <button id="infoButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Информация</button>
-      <button id="locationButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Выбор локации</button>
-      <button id="verdictButton" class="bg-gray-700 gold-text border-2 gold-border px-4 py-2 rounded-lg hover:gold-bg-hover transition w-full sm:w-auto">Вынести вердикт</button>
+
+    <!-- Основной тулбар действий -->
+    <footer class="footer-grid">
+      <button class="btn" onclick="GameAPI.openNotes()">Заметки</button>
+      <button class="btn" onclick="GameAPI.openInfo()">Инфо</button>
+      <button class="btn" onclick="GameAPI.openInventory()">Инвентарь</button>
+      <button class="btn" onclick="GameAPI.openHints()">Подсказки</button>
+      <button class="btn" onclick="GameAPI.openLocationSelector()">Локации</button>
+      <button class="btn" onclick="GameAPI.openJournal()">Журнал</button>
+      <button class="btn accent" onclick="GameAPI.showVerdictForm()">Вердикт</button>
+      <button class="btn" onclick="GameAPI.goPrevLocation()">⟵</button>
+      <button class="btn" onclick="GameAPI.goNextLocation()">⟶</button>
+      <button class="btn" onclick="GameAPI.nextPhase()">След. фаза</button>
+      <button class="btn" onclick="GameAPI.saveToSlot(1)">Сохранить 1</button>
+      <button class="btn" onclick="GameAPI.loadFromSlot(1)">Загрузить 1</button>
+      <button class="btn" onclick="GameAPI.saveToSlot(2)">Сохранить 2</button>
+      <button class="btn" onclick="GameAPI.loadFromSlot(2)">Загрузить 2</button>
+      <button class="btn" onclick="GameAPI.saveToSlot(3)">Сохранить 3</button>
+      <button class="btn" onclick="GameAPI.loadFromSlot(3)">Загрузить 3</button>
+      <button class="btn" onclick="GameAPI.exportJSON()">Экспорт</button>
+      <button class="btn" onclick="GameAPI.importJSON()">Импорт</button>
+      <button class="btn danger" onclick="GameAPI.resetProgress()">Сброс</button>
     </footer>
   </div>
 
   <!-- Модальное окно -->
   <div id="modal" class="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50 hidden">
-    <div class="bg-gray-800 rounded-lg p-6 relative max-w-md w-[90%] max-h-[80vh] overflow-y-auto">
-      <span id="modalClose" class="absolute top-3 right-4 text-xl gold-text cursor-pointer hover:text-white">&times;</span>
+    <div class="bg-gray-800 rounded-lg p-6 relative max-w-md w-[90%] max-h-[80vh] overflow-y-auto border border-gray-700">
+      <button id="modalClose" aria-label="Закрыть" class="absolute top-3 right-4 text-xl gold-text hover:text-white">&times;</button>
       <h3 id="modalTitle" class="gold-text mb-4"></h3>
       <div id="modalContent"></div>
     </div>
   </div>
+
+  <!-- Мостик UI: старт/закрытие модалки -->
+  <script>
+    (function () {
+      const welcome = document.getElementById('welcomeScreen');
+      const app = document.getElementById('app');
+      const startBtn = document.getElementById('startGameButton');
+      const modal = document.getElementById('modal');
+      const close = document.getElementById('modalClose');
+
+      startBtn?.addEventListener('click', () => {
+        welcome.classList.add('hidden');
+        app.classList.remove('hidden');
+        // первый рендер выполняет script.js при загрузке
+      });
+
+      close?.addEventListener('click', () => modal.classList.add('hidden'));
+      // закрытие по клику вне модалки
+      modal?.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+      });
+    })();
+  </script>
 
   <script src="script.js"></script>
 </body>
